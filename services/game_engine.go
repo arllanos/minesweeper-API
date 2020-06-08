@@ -6,7 +6,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/arllanos/minesweeper-POC/types"
+	"github.com/arllanos/minesweeper-API/types"
 )
 
 func init() {

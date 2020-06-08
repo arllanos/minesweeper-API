@@ -1,1 +1,1 @@
-# minesweeper-POC
+# minesweeper-API

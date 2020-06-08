@@ -3,7 +3,7 @@ package services
 import (
 	"errors"
 
-	"github.com/arllanos/minesweeper-POC/types"
+	"github.com/arllanos/minesweeper-API/types"
 )
 
 const (

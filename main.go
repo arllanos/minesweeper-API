@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/arllanos/minesweeper-POC/services"
-	"github.com/arllanos/minesweeper-POC/types"
+	"github.com/arllanos/minesweeper-API/services"
+	"github.com/arllanos/minesweeper-API/types"
 )
 
 func main() {
