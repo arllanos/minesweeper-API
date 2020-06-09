@@ -18,17 +18,23 @@ const (
 	minCols      = 5
 )
 
-type GameService struct {
-	GameRepo types.GameServiceRepo
+type GameService interface {
+	Create(game *types.Game) error
+	Start(name string) (*types.Game, error)
+	Click(name string, data *types.ClickData) (*types.Game, error)
 }
 
-func NewGameService(db types.Repo) types.GameService {
-	return &GameService{
+type service struct {
+	GameRepo repository.GameServiceRepo
+}
+
+func NewGameService(db repository.RedisRepo) GameService {
+	return &service{
 		GameRepo: repository.NewGameRepository(db),
 	}
 }
 
-func (s *GameService) Create(game *types.Game) error {
+func (s *service) Create(game *types.Game) error {
 	if game.Name == "" {
 		return errors.New("Game name not provided")
 	}
@@ -76,7 +82,7 @@ func (s *GameService) Create(game *types.Game) error {
 	return err
 }
 
-func (s *GameService) Start(name string) (*types.Game, error) {
+func (s *service) Start(name string) (*types.Game, error) {
 	game, err := s.GameRepo.GetGame(name)
 	if err != nil {
 		return nil, err
@@ -92,7 +98,7 @@ func (s *GameService) Start(name string) (*types.Game, error) {
 	return game, err
 }
 
-func (s *GameService) Click(name string, click *types.ClickData) (*types.Game, error) {
+func (s *service) Click(name string, click *types.ClickData) (*types.Game, error) {
 	game, err := s.GameRepo.GetGame(name)
 	if err != nil {
 		return nil, err

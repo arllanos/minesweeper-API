@@ -11,7 +11,7 @@ func main() {
 	logs.InitLogger()
 
 	type Services struct {
-		gameService types.GameService
+		gameService services.GameService
 	}
 	db := repository.NewRedisRepo()
 	services := &Services{

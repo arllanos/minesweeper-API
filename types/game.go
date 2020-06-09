@@ -24,38 +24,13 @@ type Game struct {
 	Points    float32       `json:"points,omitempty"`
 }
 
-type ClickData struct {
-	Row  int    `json:"row"`
-	Col  int    `json:"col"`
-	Kind string `json:"kind"`
-}
-
 type User struct {
 	Username  string    `json:"username"`
 	CreatedOn time.Time `json:"createdOn"`
 }
 
-type GameService interface {
-	Create(game *Game) error
-	Start(name string) (*Game, error)
-	Click(name string, data *ClickData) (*Game, error)
+type ClickData struct {
+	Row  int    `json:"row"`
+	Col  int    `json:"col"`
+	Kind string `json:"kind"`
 }
-
-type GameServiceRepo interface {
-	CreateGame(game *Game) error
-	CreateUser(user *User) error
-	UpdateGame(game *Game) error
-	GetGame(key string) (*Game, error)
-	GetUser(username string) (*User, error)
-}
-
-type Repo interface {
-	SaveGame(game *Game) error
-	SaveUser(key string, game *User) error
-	GetGame(key string) (*Game, error)
-	GetUser(key string) (*User, error)
-	Exists(key string) bool
-	Delete(key string) error
-}
-
-const BoardSuffix = "-Board"

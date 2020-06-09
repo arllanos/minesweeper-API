@@ -6,11 +6,21 @@ import (
 	"github.com/arllanos/minesweeper-API/types"
 )
 
-type GameRepository struct {
-	repo types.Repo
+const BoardSuffix = "-Board"
+
+type GameServiceRepo interface {
+	CreateGame(game *types.Game) error
+	CreateUser(user *types.User) error
+	UpdateGame(game *types.Game) error
+	GetGame(key string) (*types.Game, error)
+	GetUser(username string) (*types.User, error)
 }
 
-func NewGameRepository(repo types.Repo) *GameRepository {
+type GameRepository struct {
+	repo RedisRepo
+}
+
+func NewGameRepository(repo RedisRepo) *GameRepository {
 	return &GameRepository{repo: repo}
 }
 
@@ -27,7 +37,7 @@ func (r *GameRepository) CreateGame(game *types.Game) error {
 	if r.repo.Exists(game.Name) && game.Status == "in_progress" {
 		return errors.New("Game already exists")
 	} else {
-		k := game.Name + types.BoardSuffix
+		k := game.Name + BoardSuffix
 		if err := r.repo.Delete(k); err != nil {
 			return errors.New("Error deleting game board")
 		}

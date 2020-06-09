@@ -11,12 +11,21 @@ import (
 	"go.uber.org/zap"
 )
 
+type RedisRepo interface {
+	SaveGame(game *types.Game) error
+	SaveUser(key string, game *types.User) error
+	GetGame(key string) (*types.Game, error)
+	GetUser(key string) (*types.User, error)
+	Exists(key string) bool
+	Delete(key string) error
+}
+
 type repo struct {
 	redis.Conn
 }
 
 // creates a new redis repo with a connection
-func NewRedisRepo() types.Repo {
+func NewRedisRepo() RedisRepo {
 	return &repo{
 		getConnection(),
 	}
@@ -27,7 +36,7 @@ func (r *repo) SaveGame(game *types.Game) error {
 
 	// if status is new do not serialize the board
 	if game.Status != "new" {
-		k := key + types.BoardSuffix
+		k := key + BoardSuffix
 		r.saveBoard(k, game.Board)
 	}
 
@@ -64,7 +73,7 @@ func (r *repo) GetGame(key string) (*types.Game, error) {
 
 	if game.Status != "new" {
 		// unmarshal the board 2d slice properly from redis
-		k := key + types.BoardSuffix
+		k := key + BoardSuffix
 		rData, err := r.readBoard(k)
 		if err != nil {
 			return nil, err
