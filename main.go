@@ -1,54 +1,38 @@
 package main
 
 import (
-	"fmt"
-	"strings"
-
+	"github.com/arllanos/minesweeper-API/internal/logs"
+	"github.com/arllanos/minesweeper-API/repository"
 	"github.com/arllanos/minesweeper-API/services"
 	"github.com/arllanos/minesweeper-API/types"
 )
 
 func main() {
+	logs.InitLogger()
+
+	type Services struct {
+		gameService types.GameService
+	}
+	db := repository.NewRedisRepo()
+	services := &Services{
+		gameService: services.NewGameService(db),
+	}
+
 	game := &types.Game{
 		Name:     "TestGame",
 		Username: "ariel",
-		Rows:     7,
-		Cols:     7,
+		Rows:     10,
+		Cols:     10,
 		Mines:    7,
 	}
+	services.gameService.Create(game)
+	services.gameService.Start("TestGame")
 
-	services.Create(game)
-	services.Start(game, "TestGame")
-
-	for i, row := range game.Grid {
-		fmt.Printf("%v = %v\n", i, strings.Split(string(row), ""))
-	}
-
-	click := &types.ClickData{
-		Row:  1,
-		Col:  2,
-		Kind: "flag",
-	}
-	services.Click(game, "TestGame", click)
-
-	click = &types.ClickData{
+	clickData := &types.ClickData{
 		Row:  1,
 		Col:  1,
 		Kind: "click",
 	}
-	services.Click(game, "TestGame", click)
 
-	// click = &types.ClickData{
-	// 	Row:  1,
-	// 	Col:  2,
-	// 	Kind: "flag",
-	// }
-	// services.Click(game, "TestGame", click)
-
-	fmt.Println("--------------------")
-
-	for i, row := range game.Grid {
-		fmt.Printf("%v = %v\n", i, strings.Split(string(row), ""))
-	}
-
+	services.gameService.Click("TestGame", clickData)
 }

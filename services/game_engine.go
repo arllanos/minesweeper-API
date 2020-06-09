@@ -15,11 +15,11 @@ func init() {
 
 func generateBoard(game *types.Game) {
 	// initialize board
-	game.Grid = make([][]byte, game.Cols)
-	for i := range game.Grid {
-		game.Grid[i] = make([]byte, game.Rows)
-		for j := 0; j < game.Rows; j++ {
-			game.Grid[i][j] = 'E'
+	game.Board = make([][]byte, game.Rows)
+	for i := range game.Board {
+		game.Board[i] = make([]byte, game.Cols)
+		for j := 0; j < game.Cols; j++ {
+			game.Board[i][j] = 'E'
 		}
 	}
 
@@ -28,8 +28,8 @@ func generateBoard(game *types.Game) {
 	for i < game.Mines {
 		x := rand.Intn(game.Rows)
 		y := rand.Intn(game.Cols)
-		if game.Grid[x][y] != 'M' {
-			game.Grid[x][y] = 'M'
+		if game.Board[x][y] != 'M' {
+			game.Board[x][y] = 'M'
 			i++
 		}
 	}
@@ -68,38 +68,38 @@ func clickCell(game *types.Game, i int, j int) error {
 		}
 	}
 
-	if !(i >= 0 || i < len(game.Grid) || j >= 0 || j < len(game.Grid[0])) {
+	if !(i >= 0 || i < len(game.Board) || j >= 0 || j < len(game.Board[0])) {
 		return errors.New("Cell out of bounds")
 	}
 
 	// click on a flagged cell -> do nothing
-	if game.Grid[i][j] == 'm' || game.Grid[i][j] == 'e' {
+	if game.Board[i][j] == 'm' || game.Board[i][j] == 'e' {
 		return nil
 	}
 
-	if game.Grid[i][j] == 'M' {
-		game.Grid[i][j] = 'X'
+	if game.Board[i][j] == 'M' {
+		game.Board[i][j] = 'X'
 		game.Status = "over"
 		return nil
 	}
 
-	solve(game.Grid, i, j)
+	solve(game.Board, i, j)
 	return nil
 }
 
 func flagCell(game *types.Game, i int, j int) error {
 
-	if !(i >= 0 || i < len(game.Grid) || j >= 0 || j < len(game.Grid[0])) {
+	if !(i >= 0 || i < len(game.Board) || j >= 0 || j < len(game.Board[0])) {
 		return errors.New("Cell out of bounds")
 	}
 
 	// only vealed cells M and E can be flagged / unflagged
-	value := rune(game.Grid[i][j])
+	value := rune(game.Board[i][j])
 	if value == 'M' || value == 'E' {
-		game.Grid[i][j] = byte(unicode.ToLower(value))
+		game.Board[i][j] = byte(unicode.ToLower(value))
 	}
 	if value == 'm' || value == 'e' {
-		game.Grid[i][j] = byte(unicode.ToUpper(value))
+		game.Board[i][j] = byte(unicode.ToUpper(value))
 	}
 
 	return nil
