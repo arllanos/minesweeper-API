@@ -33,7 +33,7 @@ func (r *GameRepository) CreateGame(game *types.Game) error {
 		}
 	}
 
-	if err := r.repo.SaveGame(game.Name, game); err != nil {
+	if err := r.repo.SaveGame(game); err != nil {
 		return errors.New("Error saving Game")
 	}
 
@@ -45,7 +45,7 @@ func (r *GameRepository) UpdateGame(game *types.Game) error {
 		return errors.New("Game not found")
 	}
 
-	return r.repo.SaveGame(game.Name, game)
+	return r.repo.SaveGame(game)
 }
 
 func (r *GameRepository) GetUser(username string) (*types.User, error) {

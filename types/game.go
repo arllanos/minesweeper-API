@@ -50,7 +50,7 @@ type GameServiceRepo interface {
 }
 
 type Repo interface {
-	SaveGame(key string, game *Game) error
+	SaveGame(game *Game) error
 	SaveUser(key string, game *User) error
 	GetGame(key string) (*Game, error)
 	GetUser(key string) (*User, error)

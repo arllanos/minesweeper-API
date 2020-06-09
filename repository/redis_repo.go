@@ -22,7 +22,8 @@ func NewRedisRepo() types.Repo {
 	}
 }
 
-func (r *repo) SaveGame(key string, game *types.Game) error {
+func (r *repo) SaveGame(game *types.Game) error {
+	key := game.Name
 
 	// if status is new do not serialize the board
 	if game.Status != "new" {
@@ -71,7 +72,7 @@ func (r *repo) GetGame(key string) (*types.Game, error) {
 
 		logs.Log().Debug("Game Board:")
 		for index, element := range rData {
-			logs.Log().Debugf("%d => %v", index, element)
+			logs.Log().Debugf("%d => %s", index, string(element))
 		}
 		game.Board = rData
 	}
