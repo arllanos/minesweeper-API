@@ -52,10 +52,10 @@ func (*controller) CreateUser(response http.ResponseWriter, request *http.Reques
 	result, err1 := gameService.CreateUser(&user)
 	if err1 != nil {
 		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Error saving user"})
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Error creating user"})
 		return
 	}
-	response.WriteHeader(http.StatusOK)
+	response.WriteHeader(http.StatusCreated)
 	json.NewEncoder(response).Encode(result)
 }
 
@@ -71,7 +71,7 @@ func (*controller) CreateGame(response http.ResponseWriter, request *http.Reques
 
 	if !gameService.Exists(game.Username) {
 		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Cannot create game for non existent username"})
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: "User does not exists"})
 		return
 	}
 
@@ -80,10 +80,10 @@ func (*controller) CreateGame(response http.ResponseWriter, request *http.Reques
 		errMsg := err1.Error()
 		fmt.Println(errMsg)
 		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Error saving game"})
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Error creating game"})
 		return
 	}
-	response.WriteHeader(http.StatusOK)
+	response.WriteHeader(http.StatusCreated)
 	json.NewEncoder(response).Encode(result)
 }
 
@@ -95,15 +95,9 @@ func (*controller) StartGame(response http.ResponseWriter, request *http.Request
 	username := URLpath[len(URLpath)-1]
 	gamename := URLpath[len(URLpath)-2]
 
-	if !gameService.Exists(gamename) {
+	if !gameService.Exists(gamename) || !gameService.Exists(username) {
 		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Cannot start game for non existent game ID"})
-		return
-	}
-
-	if !gameService.Exists(username) {
-		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Cannot start game for non existent username"})
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Game or User do not exists"})
 		return
 	}
 
@@ -134,17 +128,9 @@ func (*controller) ClickCell(response http.ResponseWriter, request *http.Request
 	username := URLpath[len(URLpath)-2]
 	gamename := URLpath[len(URLpath)-3]
 
-	fmt.Println("click cell route variables", username, gamename, URLpath)
-
-	if !gameService.Exists(gamename) {
+	if !gameService.Exists(gamename) || !gameService.Exists(username) {
 		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Cannot start game for non existent game ID"})
-		return
-	}
-
-	if !gameService.Exists(username) {
-		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Cannot start game for non existent username"})
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Game or User do not exists"})
 		return
 	}
 
@@ -153,7 +139,7 @@ func (*controller) ClickCell(response http.ResponseWriter, request *http.Request
 		errMsg := err1.Error()
 		fmt.Println(errMsg)
 		response.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Error starting game"})
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Error clicking game board"})
 		return
 	}
 	response.WriteHeader(http.StatusOK)
@@ -161,7 +147,25 @@ func (*controller) ClickCell(response http.ResponseWriter, request *http.Request
 }
 
 func (*controller) GetBoard(response http.ResponseWriter, request *http.Request) {
-	//TODO: GetBoard code goes here...
-	_, _ = response.Write([]byte("Printing board coming soon"))
+	response.Header().Set("Content-Type", "application/json")
+	// TODO: delegate parsing of route variables to the http router
+	URLpath := strings.Split(request.URL.Path, "/")
+	username := URLpath[len(URLpath)-2]
+	gamename := URLpath[len(URLpath)-3]
+
+	if !gameService.Exists(gamename) || !gameService.Exists(username) {
+		response.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Game or User do not exists"})
+		return
+	}
+
+	board, err := gameService.Board(gamename)
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: "Error getting game board"})
+	}
+
+	response.WriteHeader(http.StatusOK)
+	_, _ = response.Write([]byte(board))
 
 }

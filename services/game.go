@@ -1,6 +1,7 @@
 package services
 
 import (
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -25,6 +26,7 @@ type GameService interface {
 	Exists(key string) bool
 	Start(name string) (*types.Game, error)
 	Click(name string, data *types.ClickData) (*types.Game, error)
+	Board(name string) ([]uint8, error)
 }
 
 type service struct{}
@@ -113,11 +115,11 @@ func (*service) Start(name string) (*types.Game, error) {
 
 func (*service) Click(name string, click *types.ClickData) (*types.Game, error) {
 	game, err := repo.GetGame(name)
-	game.TimeSpent = game.StartedAt.Sub(time.Now())
-
 	if err != nil {
 		return nil, err
 	}
+
+	game.TimeSpent = game.StartedAt.Sub(time.Now())
 
 	if click.Kind == "click" {
 		if err := clickCell(game, click.Row, click.Col); err != nil {
@@ -134,4 +136,35 @@ func (*service) Click(name string, click *types.ClickData) (*types.Game, error) 
 	}
 
 	return game, nil
+}
+
+func (*service) Board(name string) ([]uint8, error) {
+	game, err := repo.GetGame(name)
+	if err != nil {
+		return nil, err
+	}
+
+	var boardToJSON func(data [][]byte) ([]uint8, error)
+	boardToJSON = func(data [][]byte) ([]uint8, error) {
+		tmp := make([][]string, len(data), len(data[0]))
+		for i, _ := range data {
+			row := data[i][:]
+			var fRow []string
+			for _, v := range row {
+				fRow = append(fRow, string(v))
+			}
+			tmp[i] = fRow
+		}
+		tmpJson, err := json.Marshal(tmp)
+		if err != nil {
+			return nil, errors.New("Cannot encode to JSON")
+		}
+		return tmpJson, nil
+	}
+
+	jBoard, err1 := boardToJSON(game.Board)
+	if err1 != nil {
+		return nil, err1
+	}
+	return jBoard, nil
 }
