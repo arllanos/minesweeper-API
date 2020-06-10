@@ -1,38 +1,33 @@
 package main
 
 import (
-	"github.com/arllanos/minesweeper-API/internal/logs"
+	"os"
+
+	"github.com/arllanos/minesweeper-API/controller"
+	router "github.com/arllanos/minesweeper-API/http"
 	"github.com/arllanos/minesweeper-API/repository"
 	"github.com/arllanos/minesweeper-API/services"
-	"github.com/arllanos/minesweeper-API/types"
+)
+
+const defaultPort = "8080"
+
+var (
+	gameRepository repository.GameRepository = repository.NewRedisRepository()
+	gameService    services.GameService      = services.NewGameService(gameRepository)
+	httpRouter     router.Router             = router.NewChiRouter()
+	gameController controller.GameController = controller.NewGameController(gameService)
 )
 
 func main() {
-	logs.InitLogger()
+	httpRouter.POST("/users", gameController.CreateUser)
+	httpRouter.POST("/games", gameController.CreateGame)
+	httpRouter.POST("/games/{gamename}/{username}", gameController.StartGame)
+	httpRouter.POST("/games/{gamename}/{username}/click", gameController.ClickCell)
+	httpRouter.GET("/games/{gamename}/{username}/board", gameController.GetBoard)
 
-	type Services struct {
-		gameService services.GameService
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
 	}
-	db := repository.NewRedisRepo()
-	services := &Services{
-		gameService: services.NewGameService(db),
-	}
-
-	game := &types.Game{
-		Name:     "TestGame",
-		Username: "ariel",
-		Rows:     10,
-		Cols:     10,
-		Mines:    7,
-	}
-	services.gameService.Create(game)
-	services.gameService.Start("TestGame")
-
-	clickData := &types.ClickData{
-		Row:  1,
-		Col:  1,
-		Kind: "click",
-	}
-
-	services.gameService.Click("TestGame", clickData)
+	httpRouter.SERVE(port)
 }

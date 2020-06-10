@@ -26,7 +26,7 @@ type Game struct {
 
 type User struct {
 	Username  string    `json:"username"`
-	CreatedOn time.Time `json:"createdOn"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 type ClickData struct {

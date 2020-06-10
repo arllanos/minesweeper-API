@@ -2,68 +2,80 @@ package repository
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"os"
 
-	"github.com/arllanos/minesweeper-API/internal/logs"
 	"github.com/arllanos/minesweeper-API/types"
 	"github.com/gomodule/redigo/redis"
-	"go.uber.org/zap"
 )
 
-type RedisRepo interface {
-	SaveGame(game *types.Game) error
-	SaveUser(key string, game *types.User) error
-	GetGame(key string) (*types.Game, error)
-	GetUser(key string) (*types.User, error)
-	Exists(key string) bool
-	Delete(key string) error
-}
+const BoardSuffix = "-Board"
 
-type repo struct {
+type redisRepo struct {
 	redis.Conn
 }
 
 // creates a new redis repo with a connection
-func NewRedisRepo() RedisRepo {
-	return &repo{
+func NewRedisRepository() GameRepository {
+	return &redisRepo{
 		getConnection(),
 	}
 }
 
-func (r *repo) SaveGame(game *types.Game) error {
-	key := game.Name
+func (r *redisRepo) SaveGame(game *types.Game) (*types.Game, error) {
+	if r.Exists(game.Name) && game.Status == "in_progress" {
+		return nil, errors.New("Game already exists")
+	} else {
+		k := game.Name + BoardSuffix
+		if err := r.Delete(k); err != nil {
+			return nil, errors.New("Error deleting game board")
+		}
+	}
 
 	// if status is new do not serialize the board
 	if game.Status != "new" {
-		k := key + BoardSuffix
+		k := game.Name + BoardSuffix
 		r.saveBoard(k, game.Board)
 	}
 
 	jData, err := json.Marshal(game)
 	if err != nil {
-		logs.Log().Error("Unable to marshal game data", zap.Error(err))
-		return err
+		log.Printf("Error: Unable to marshal game data: %q", err)
+		return nil, err
 	}
-	_, err = r.Do("SET", key, jData)
+	_, err = r.Do("SET", game.Name, jData)
 
-	return err
+	return game, err
 }
 
-func (r *repo) SaveUser(key string, user *types.User) error {
+func (r *redisRepo) GetUser(key string) (*types.User, error) {
+	data, err := redis.String(r.Do("GET", key))
+
+	var user types.User
+	err = json.Unmarshal([]byte(data), &user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *redisRepo) SaveUser(user *types.User) (*types.User, error) {
+	key := user.Username
 	jData, err := json.Marshal(user)
 	if err != nil {
-		logs.Log().Error("Unable to marshal data", zap.Error(err))
-		return err
+		log.Printf("Error: Unable to marshal data: %q", err)
+		return nil, err
 	}
 	_, err = r.Do("SET", key, jData)
 
-	return err
+	return user, err
 }
 
-func (r *repo) GetGame(key string) (*types.Game, error) {
+func (r *redisRepo) GetGame(key string) (*types.Game, error) {
 	data, err := redis.String(r.Do("GET", key))
-	logs.Log().Infof("Game -> %s", data)
 
 	var game types.Game
 	err = json.Unmarshal([]byte(data), &game)
@@ -79,9 +91,9 @@ func (r *repo) GetGame(key string) (*types.Game, error) {
 			return nil, err
 		}
 
-		logs.Log().Debug("Game Board:")
+		log.Printf("Game Board:")
 		for index, element := range rData {
-			logs.Log().Debugf("%d => %s", index, string(element))
+			log.Printf("%d => %s", index, string(element))
 		}
 		game.Board = rData
 	}
@@ -89,20 +101,7 @@ func (r *repo) GetGame(key string) (*types.Game, error) {
 	return &game, nil
 }
 
-func (r *repo) GetUser(key string) (*types.User, error) {
-	data, err := redis.String(r.Do("GET", key))
-	logs.Log().Infof("User -> %s", data)
-
-	var user types.User
-	err = json.Unmarshal([]byte(data), &user)
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
-func (r *repo) Exists(key string) bool {
+func (r *redisRepo) Exists(key string) bool {
 	data, err := redis.Int(r.Do("EXISTS", key))
 
 	if err != nil {
@@ -112,16 +111,15 @@ func (r *repo) Exists(key string) bool {
 	return data > 0
 }
 
-func (r *repo) Delete(key string) error {
+func (r *redisRepo) Delete(key string) error {
 	_, err := redis.Int(r.Do("DEL", key))
 
 	return err
 }
 
-func (r *repo) readBoard(key string) ([][]byte, error) {
+func (r *redisRepo) readBoard(key string) ([][]byte, error) {
 	// redis to string
 	sData, err := redis.String(r.Do("GET", key))
-	logs.Log().Infof("Board -> %s", sData)
 	if err != nil {
 		return nil, err
 	}
@@ -136,11 +134,11 @@ func (r *repo) readBoard(key string) ([][]byte, error) {
 	return slcData, nil
 }
 
-func (r *repo) saveBoard(key string, data [][]byte) error {
+func (r *redisRepo) saveBoard(key string, data [][]byte) error {
 	// board 2D slice to json
 	boardData, err := json.Marshal(data)
 	if err != nil {
-		logs.Log().Error("Unable to marshal board data", zap.Error(err))
+		log.Printf("Error: Unable to marshal board data: %q", err)
 	}
 
 	// json encoded to redis
@@ -153,12 +151,11 @@ func getConnection() redis.Conn {
 	localURL := os.Getenv("REDIS_URL")
 	redisURL := fmt.Sprintf("redis://%s", localURL)
 
-	logs.Log().Infof("Connecting to Redis %s ...", redisURL)
+	log.Printf("Connecting to Redis %q ...", redisURL)
 
 	c, err := redis.DialURL(redisURL)
 	if err != nil {
-		logs.Log().Fatal("Error connecting to Redis")
-		panic(err)
+		log.Fatal(err)
 	}
 	return c
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/arllanos/minesweeper-API/repository"
 	"github.com/arllanos/minesweeper-API/types"
+	"github.com/segmentio/ksuid"
 )
 
 const (
@@ -19,26 +20,25 @@ const (
 )
 
 type GameService interface {
-	Create(game *types.Game) error
+	CreateGame(game *types.Game) (*types.Game, error)
+	CreateUser(user *types.User) (*types.User, error)
+	Exists(key string) bool
 	Start(name string) (*types.Game, error)
 	Click(name string, data *types.ClickData) (*types.Game, error)
 }
 
-type service struct {
-	GameRepo repository.GameServiceRepo
+type service struct{}
+
+var (
+	repo repository.GameRepository
+)
+
+func NewGameService(db repository.GameRepository) GameService {
+	repo = db
+	return &service{}
 }
 
-func NewGameService(db repository.RedisRepo) GameService {
-	return &service{
-		GameRepo: repository.NewGameRepository(db),
-	}
-}
-
-func (s *service) Create(game *types.Game) error {
-	if game.Name == "" {
-		return errors.New("Game name not provided")
-	}
-
+func (*service) CreateGame(game *types.Game) (*types.Game, error) {
 	// defaults
 	if game.Rows == 0 {
 		game.Rows = defaultRows
@@ -73,17 +73,30 @@ func (s *service) Create(game *types.Game) error {
 		game.Mines = (game.Cols * game.Rows)
 	}
 
+	// if no game name assign a short ID
+	if game.Name == "" {
+		game.Name = ksuid.New().String()
+	}
 	game.Status = "new"
 	game.Board = nil
 	game.CreatedAt = time.Now()
 
-	err := s.GameRepo.CreateGame(game)
-
-	return err
+	return repo.SaveGame(game)
 }
 
-func (s *service) Start(name string) (*types.Game, error) {
-	game, err := s.GameRepo.GetGame(name)
+func (*service) CreateUser(user *types.User) (*types.User, error) {
+	if user.Username == "" {
+		return nil, errors.New("Username not provided")
+	}
+	return repo.SaveUser(user)
+}
+
+func (*service) Exists(key string) bool {
+	return repo.Exists(key)
+}
+
+func (*service) Start(name string) (*types.Game, error) {
+	game, err := repo.GetGame(name)
 	if err != nil {
 		return nil, err
 	}
@@ -93,13 +106,15 @@ func (s *service) Start(name string) (*types.Game, error) {
 
 	generateBoard(game)
 
-	err = s.GameRepo.UpdateGame(game)
+	_, err = repo.SaveGame(game)
 
 	return game, err
 }
 
-func (s *service) Click(name string, click *types.ClickData) (*types.Game, error) {
-	game, err := s.GameRepo.GetGame(name)
+func (*service) Click(name string, click *types.ClickData) (*types.Game, error) {
+	game, err := repo.GetGame(name)
+	game.TimeSpent = game.StartedAt.Sub(time.Now())
+
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +129,7 @@ func (s *service) Click(name string, click *types.ClickData) (*types.Game, error
 		}
 	}
 
-	if err := s.GameRepo.UpdateGame(game); err != nil {
+	if _, err := repo.SaveGame(game); err != nil {
 		return nil, err
 	}
 
