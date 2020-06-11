@@ -1,8 +1,11 @@
 
 # Minesweeper-API
 Minesweeper game written as a simple REST API using Golang.
+
 It uses Redis as database although it is designed to easily add another database vendor.
+
 It provides the ability to easily change underlying http framework (e.g., switch from Chi to Mux http router or viceversa)
+
 The game engine has been written by adapting the classical [Flood Fill algorithm](https://en.wikipedia.org/wiki/Flood_fill).
 
 ## API Endpoints
@@ -184,4 +187,5 @@ By clicking on a cell (using the click endpoint) it will reveal the correspondin
 ```
 **Logic**
 - When a mine ('M') is clicked, it changes to ('X') and the game is over.
-- When a Veiled Empty ('E') cell is clicked it can either, transition to Revealed blank ('B') or to a digit (0 to 8) indicating the number of adjacent mines.
+- When a Veiled Empty ('E') cell is clicked, it can either, transition to Revealed blank ('B') or to a digit (1 to 8) indicating the number of adjacent mines.
+- Flagging a cell will change any unrevealed value to its corresponding lowercase letter values inidcate flagged cell-
