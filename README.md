@@ -1,14 +1,41 @@
-
 # Minesweeper-API
 Minesweeper game written as a simple REST API using Golang.
 
-It uses Redis as database although it is designed to easily add another database vendor.
+It uses Redis as database although it is designed to easily add other database vendors.
 
-It provides the ability to easily change underlying http framework (e.g., switch from Chi to Mux http router or viceversa)
+It provides the ability to easily change underlying http routing framework (e.g., switch from Chi to Mux or viceversa)
 
 The game engine has been written by adapting the classical [Flood Fill algorithm](https://en.wikipedia.org/wiki/Flood_fill).
 
-## API Endpoints
+
+## Running the API server locally
+There are two ways to run the API server locally. 
+1. Running the app using docker-compose (recommended). 
+2. Build and run locally on a computer with Golang installed and a local or remote Redis.
+
+### Running using docker-compose
+Starting the server
+```
+docker-compose up
+```
+Stopping the server
+```
+docker-compose down --remove-orphans
+```
+### Build and run locally
+Pre-requisites: 
+- If Golang is not installed click [here]( to https://golang.org/doc/install ) for installation instructions
+- Provison a local Redis instance.
+
+#### Build
+```
+go build -o minesweeper-api
+```
+#### Run
+```
+go run .
+```
+## REST API Endpoints
 
 ### POST - Create User
 ```
@@ -101,7 +128,7 @@ Click or flag a cell in the game board. Use the `kind` field to indicate either 
 ```
 **Example Request**
 ```bash
-curl --location --request GET 'http://localhost:8080/games/mygame1/myuser/board'
+curl --location --request POST 'http://localhost:8080/games/mygame1/myuser/click' \ --data-raw '{ "row": 1, "col": 0, "kind": "click" }'
 ```
 **Example Response**
 ```json

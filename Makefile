@@ -15,3 +15,9 @@ fmt:
 
 vet:
 	go vet ./...
+
+up:
+	docker-compose up --build
+
+down:
+	docker-compose down --remove-orphans
