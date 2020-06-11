@@ -1,6 +1,13 @@
-# Minesweeper-API
 
-## POST - Create User
+# Minesweeper-API
+Minesweeper game written as a simple REST API using Golang.
+It uses Redis as database although it is designed to easily add another database vendor.
+It provides the ability to easily change underlying http framework (e.g., switch from Chi to Mux http router or viceversa)
+The game engine has been written by adapting the classical [Flood Fill algorithm](https://en.wikipedia.org/wiki/Flood_fill).
+
+## API Endpoints
+
+### POST - Create User
 ```
 http://localhost:8080/users
 ```
@@ -9,7 +16,7 @@ Create a user for playing. A user should be created in order to be able to start
 **Body**
 ```json
 {
-	"username": "carouser"
+	"username": "myuser"
 }
 ```
 **Example Request**
@@ -26,7 +33,7 @@ curl --location --request POST 'http://localhost:8080/users' \
     "createdAt": "2020-06-11T13:03:30.917771715-03:00"
 }
 ```
-## PUT - Start/Restart Game
+### PUT - Start/Restart Game
 ```
 http://localhost:8080/games
 ```
@@ -75,11 +82,12 @@ curl --location --request PUT 'http://localhost:8080/games' \
     "time_spent": 0
 }
 ```
-## POST - Click
+### POST - Click
 ```
 http://localhost:8080/games/mygame1/myuser/click
 ```
 Click or flag a cell in the game board. Use the `kind` field to indicate either `click` or `flag`
+
 **Body**
 ```json
 {
@@ -116,7 +124,7 @@ curl --location --request GET 'http://localhost:8080/games/mygame1/myuser/board'
     "time_spent": 700
 }
 ```
-## GET - Obtain the Game Board
+### GET - Obtain the Game Board
 ```
 http://localhost:8080/games/mygame1/myuser/board
 ```
@@ -156,3 +164,24 @@ Follow this steps to render the game board in Postman:
 1. Add [this](https://gist.github.com/arllanos/6a57c6b293c0c7280562aef3d97eb248) code to the `Tests` script for the request.
 2. Click `Send` to run the request.
 3. Click the `Visualize` tab to render the game board.
+
+## Game engine logic and how to interpret the Board
+The game **board** is part of the Game structure `types/game.go`.
+This board is a 2-Dimensional array of bytes an the data in is coded as follows:
+
+**Unrevealed values**
+```
+* M -----> Veiled mine 
+* E -----> Veiled Empty 
+```
+By clicking on a cell (using the click endpoint) it will reveal the corresponding cell.
+
+**Revealed values**
+```
+* X -----> Exploded mine
+* B -----> Revealed Blank
+* Digit -> Revealed with adjacent mine count
+```
+**Logic**
+- When a mine ('M') is clicked, it changes to ('X') and the game is over.
+- When a Veiled Empty ('E') cell is clicked it can either, transition to Revealed blank ('B') or to a digit (0 to 8) indicating the number of adjacent mines.
