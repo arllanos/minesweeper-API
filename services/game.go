@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/arllanos/minesweeper-API/repository"
@@ -16,17 +17,16 @@ const (
 	defaultMines = 15
 	maxRows      = 30
 	maxCols      = 30
-	minRows      = 5
-	minCols      = 5
+	minRows      = 2
+	minCols      = 2
 )
 
 type GameService interface {
 	CreateGame(game *types.Game) (*types.Game, error)
 	CreateUser(user *types.User) (*types.User, error)
 	Exists(key string) bool
-	Start(name string) (*types.Game, error)
-	Click(name string, data *types.ClickData) (*types.Game, error)
-	Board(name string) ([]uint8, error)
+	Click(gameName string, userName string, data *types.ClickData) (*types.Game, error)
+	Board(gameName string, userName string) ([]uint8, error)
 }
 
 type service struct{}
@@ -41,6 +41,11 @@ func NewGameService(db repository.GameRepository) GameService {
 }
 
 func (*service) CreateGame(game *types.Game) (*types.Game, error) {
+
+	if !repo.Exists(game.Username) {
+		return nil, errors.New("Username does not exits")
+	}
+
 	// defaults
 	if game.Rows == 0 {
 		game.Rows = defaultRows
@@ -79,17 +84,31 @@ func (*service) CreateGame(game *types.Game) (*types.Game, error) {
 	if game.Name == "" {
 		game.Name = ksuid.New().String()
 	}
-	game.Status = "new"
 	game.Board = nil
 	game.CreatedAt = time.Now()
 
-	return repo.SaveGame(game)
+	// start the game with an initialized board
+	game.Status = "ready"
+	generateBoard(game)
+	_, err := repo.SaveGame(game)
+
+	if err != nil {
+		return nil, errors.New("Error saving game")
+	}
+
+	return game, err
 }
 
 func (*service) CreateUser(user *types.User) (*types.User, error) {
 	if user.Username == "" {
 		return nil, errors.New("Username not provided")
 	}
+
+	if repo.Exists(user.Username) {
+		return nil, errors.New("User already exists")
+	}
+
+	user.CreatedAt = time.Now()
 	return repo.SaveUser(user)
 }
 
@@ -97,29 +116,35 @@ func (*service) Exists(key string) bool {
 	return repo.Exists(key)
 }
 
-func (*service) Start(name string) (*types.Game, error) {
-	game, err := repo.GetGame(name)
+func (*service) Click(gameName string, userName string, click *types.ClickData) (*types.Game, error) {
+	if !repo.Exists(gameName) || !repo.Exists(userName) {
+		return nil, errors.New("Game or user do not exists")
+	}
+
+	game, err := repo.GetGame(gameName)
 	if err != nil {
 		return nil, err
 	}
 
-	game.Status = "started"
-	game.StartedAt = time.Now()
+	log.Printf("Click type [%s] request at (%d, %d) for game [%s] with status [%s]", click.Kind, click.Row, click.Col, game.Name, game.Status)
 
-	generateBoard(game)
-
-	_, err = repo.SaveGame(game)
-
-	return game, err
-}
-
-func (*service) Click(name string, click *types.ClickData) (*types.Game, error) {
-	game, err := repo.GetGame(name)
-	if err != nil {
-		return nil, err
+	if click.Kind != "click" && click.Kind != "flag" {
+		return nil, errors.New("Click kind should be either 'click' or 'flag'")
 	}
 
-	game.TimeSpent = game.StartedAt.Sub(time.Now())
+	if game.Status == "ready" {
+		// first click: set in progress and set start time
+		game.Status = "in_progress"
+		game.StartedAt = time.Now()
+	}
+
+	if game.Status == "over" {
+		return nil, errors.New("Game is over and does not accept clicks")
+	}
+
+	if game.Status == "won" {
+		return nil, errors.New("Game is finished and does not accept clicks. You won!!!")
+	}
 
 	if click.Kind == "click" {
 		if err := clickCell(game, click.Row, click.Col); err != nil {
@@ -131,6 +156,12 @@ func (*service) Click(name string, click *types.ClickData) (*types.Game, error) 
 		}
 	}
 
+	game.TimeSpent = time.Now().Sub(game.StartedAt)
+
+	if weHaveWinner(game) {
+		game.Status = "won"
+	}
+
 	if _, err := repo.SaveGame(game); err != nil {
 		return nil, err
 	}
@@ -138,10 +169,18 @@ func (*service) Click(name string, click *types.ClickData) (*types.Game, error) 
 	return game, nil
 }
 
-func (*service) Board(name string) ([]uint8, error) {
-	game, err := repo.GetGame(name)
+func (*service) Board(gameName string, userName string) ([]uint8, error) {
+	if !repo.Exists(gameName) || !repo.Exists(userName) {
+		return nil, errors.New("Game or user do not exists")
+	}
+
+	game, err := repo.GetGame(gameName)
 	if err != nil {
 		return nil, err
+	}
+
+	if game.Board == nil {
+		return nil, errors.New("This game has no board.")
 	}
 
 	var boardToJSON func(data [][]byte) ([]uint8, error)

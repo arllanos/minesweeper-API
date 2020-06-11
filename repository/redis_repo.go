@@ -25,20 +25,12 @@ func NewRedisRepository() GameRepository {
 }
 
 func (r *redisRepo) SaveGame(game *types.Game) (*types.Game, error) {
-	if r.Exists(game.Name) && game.Status == "in_progress" {
-		return nil, errors.New("Game already exists")
-	} else {
-		k := game.Name + BoardSuffix
-		if err := r.Delete(k); err != nil {
-			return nil, errors.New("Error deleting game board")
-		}
+	// reset the auxiliar board (delete & save)
+	k := game.Name + BoardSuffix
+	if err := r.Delete(k); err != nil {
+		return nil, errors.New("Error deleting game board")
 	}
-
-	// if status is new do not serialize the board
-	if game.Status != "new" {
-		k := game.Name + BoardSuffix
-		r.saveBoard(k, game.Board)
-	}
+	r.saveBoard(k, game.Board)
 
 	jData, err := json.Marshal(game)
 	if err != nil {
@@ -83,20 +75,18 @@ func (r *redisRepo) GetGame(key string) (*types.Game, error) {
 		return nil, err
 	}
 
-	if game.Status != "new" {
-		// unmarshal the board 2d slice properly from redis
-		k := key + BoardSuffix
-		rData, err := r.readBoard(k)
-		if err != nil {
-			return nil, err
-		}
-
-		log.Printf("Game Board:")
-		for index, element := range rData {
-			log.Printf("%d => %s", index, string(element))
-		}
-		game.Board = rData
+	// unmarshal the board 2d slice properly from redis
+	k := key + BoardSuffix
+	rData, err := r.readBoard(k)
+	if err != nil {
+		return nil, err
 	}
+
+	log.Printf("Game Board:")
+	for index, element := range rData {
+		log.Printf("%d => %s", index, string(element))
+	}
+	game.Board = rData
 
 	return &game, nil
 }

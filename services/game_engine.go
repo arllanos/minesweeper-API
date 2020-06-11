@@ -68,13 +68,18 @@ func clickCell(game *types.Game, i int, j int) error {
 		}
 	}
 
-	if !(i >= 0 || i < len(game.Board) || j >= 0 || j < len(game.Board[0])) {
-		return errors.New("Cell out of bounds")
+	if !(i >= 0 && i < game.Rows && j >= 0 && j < game.Cols) {
+		return errors.New("Clicked cell out of bounds")
 	}
 
-	// click on a flagged cell -> do nothing
+	// return if it is a flagged cell
 	if game.Board[i][j] == 'm' || game.Board[i][j] == 'e' {
-		return nil
+		return errors.New("Clicked cell is flagged")
+	}
+
+	// increment click count if it is a valid click
+	if game.Board[i][j] == 'M' || game.Board[i][j] == 'E' {
+		game.Clicks += 1
 	}
 
 	if game.Board[i][j] == 'M' {
@@ -84,13 +89,14 @@ func clickCell(game *types.Game, i int, j int) error {
 	}
 
 	solve(game.Board, i, j)
+
 	return nil
 }
 
 func flagCell(game *types.Game, i int, j int) error {
 
-	if !(i >= 0 || i < len(game.Board) || j >= 0 || j < len(game.Board[0])) {
-		return errors.New("Cell out of bounds")
+	if !(i >= 0 && i < game.Rows && j >= 0 && j < game.Cols) {
+		return errors.New("Flagged cell out of bounds")
 	}
 
 	// only vealed cells M and E can be flagged / unflagged
@@ -103,4 +109,18 @@ func flagCell(game *types.Game, i int, j int) error {
 	}
 
 	return nil
+}
+
+func weHaveWinner(game *types.Game) bool {
+	// we have a winner if:	no 'E', no 'e' and no 'X'
+
+	for i, _ := range game.Board {
+		for j, _ := range game.Board[0] {
+			if game.Board[i][j] == 'E' || game.Board[i][j] == 'e' || game.Board[i][j] == 'X' {
+				return false
+			}
+		}
+	}
+
+	return true
 }

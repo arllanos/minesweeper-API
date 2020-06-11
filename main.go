@@ -20,8 +20,7 @@ var (
 
 func main() {
 	httpRouter.POST("/users", gameController.CreateUser)
-	httpRouter.POST("/games", gameController.CreateGame)
-	httpRouter.POST("/games/{gamename}/{username}", gameController.StartGame)
+	httpRouter.PUT("/games", gameController.CreateGame)
 	httpRouter.POST("/games/{gamename}/{username}/click", gameController.ClickCell)
 	httpRouter.GET("/games/{gamename}/{username}/board", gameController.GetBoard)
 

@@ -2,13 +2,6 @@ package types
 
 import "time"
 
-/* Values in Game.Board cells follows this logic/rules:
-M		Veiled Mine.
-E		Veiled Empty.
-B		Revealed Blank w/o adjacent mines.
-1-8		Digit representing mine count. These are set during the game rather than when game starts.
-*/
-
 type Game struct {
 	Name      string        `json:"name"`
 	Username  string        `json:"username"`
@@ -21,7 +14,6 @@ type Game struct {
 	CreatedAt time.Time     `json:"created_at,omitempty"`
 	StartedAt time.Time     `json:"started_at"`
 	TimeSpent time.Duration `json:"time_spent"`
-	Points    float32       `json:"points,omitempty"`
 }
 
 type User struct {
