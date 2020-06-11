@@ -1,4 +1,3 @@
-
 # Minesweeper-API
 
 ## POST - Create User
@@ -124,11 +123,11 @@ http://localhost:8080/games/mygame1/myuser/board
 Get the board in JSON format.
 
 **Example Request**
+```
 curl --location --request GET 'http://localhost:8080/games/mygame1/myuser/board'
+```
 
 **Example Response**
-
-```
 ```json
 [
     [
@@ -140,7 +139,7 @@ curl --location --request GET 'http://localhost:8080/games/mygame1/myuser/board'
         "M",
         "E"
     ],
-	... ommited some data to shorten
+	... omitted some data to shorten
     [
         "E",
         "E",
@@ -152,4 +151,8 @@ curl --location --request GET 'http://localhost:8080/games/mygame1/myuser/board'
     ]
 ]
 ```
-Using Postman? You can pretty render using the Postman Visualize feature. For rendering in Postman [this](https://gist.github.com/arllanos/6a57c6b293c0c7280562aef3d97eb248) code in the Test tab
+Using Postman? You can pretty render the reponse using the Postman Visualize feature. 
+Follow this steps to render the game board in Postman:
+1. Add [this](https://gist.github.com/arllanos/6a57c6b293c0c7280562aef3d97eb248) code to the `Tests` script for the request.
+2. Click `Send` to run the request.
+3. Click the `Visualize` tab to render the game board.
