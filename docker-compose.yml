@@ -1,0 +1,24 @@
+version: "3.3"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    links:
+      - redis
+    environment:
+      REDIS_URL: "redis:6379"
+    networks:
+      - minesweepernet
+
+  redis:
+    image: "redis:alpine"
+    networks:
+      - minesweepernet
+    ports:
+      - "6379:6379"
+
+networks:
+  minesweepernet:

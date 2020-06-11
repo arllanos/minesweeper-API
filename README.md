@@ -168,9 +168,9 @@ Follow this steps to render the game board in Postman:
 2. Click `Send` to run the request.
 3. Click the `Visualize` tab to render the game board.
 
-## Game engine logic and how to interpret the Board
+## Game engine logic and how to interpret the board
 The game **board** is part of the Game structure `types/game.go`.
-This board is a 2-Dimensional array of bytes an the data in is coded as follows:
+This board is a 2-Dimensional array of bytes an its data is coded as follows:
 
 **Unrevealed values**
 ```
@@ -188,4 +188,4 @@ By clicking on a cell (using the click endpoint) it will reveal the correspondin
 **Logic**
 - When a mine ('M') is clicked, it changes to ('X') and the game is over.
 - When a Veiled Empty ('E') cell is clicked, it can either, transition to Revealed blank ('B') or to a digit (1 to 8) indicating the number of adjacent mines.
-- Flagging a cell will change any unrevealed value to its corresponding lowercase letter values inidcate flagged cell-
+- Flagging a cell will change any unrevealed value to its corresponding lowercase letter value.

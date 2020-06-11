@@ -1,6 +1,6 @@
 VERSION := 0.1.0
 PROJECT := $(shell basename "$(PWD)")
-BINNAME := app
+BINNAME := minesweeper-api
 LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD)"
 
 build: fmt vet
@@ -15,4 +15,3 @@ fmt:
 
 vet:
 	go vet ./...
-
