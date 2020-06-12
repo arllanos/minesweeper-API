@@ -1,0 +1,76 @@
+# Redis deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msapi-rds
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msapi-rds
+  template:
+    metadata:
+      labels:
+        app: msapi-rds
+    spec:
+      containers:
+      - image: redis:alpine
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+---
+# Redis service
+apiVersion: v1
+kind: Service
+metadata:
+  name: msapi-rds
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: msapi-rds
+---
+# minesweeper-api deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: msapi-api
+  labels:
+    app: msapi-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: msapi-api
+  template:
+    metadata:
+      labels:
+        app: msapi-api
+    spec:
+      containers:
+      - image: arllanos/minesweeper-api:latest
+        name: minesweeper-api
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 250m
+          limits:
+            cpu: 500m
+        env:
+        - name: REDIS_URL
+          value: msapi-rds:6379
+---
+# minesweeper-api service
+apiVersion: v1
+kind: Service
+metadata:
+  name: msapi-api
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+  selector:
+    app: msapi-api

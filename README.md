@@ -1,19 +1,21 @@
+
 # Minesweeper-API
 Minesweeper game written as a simple REST API using Golang.
 
-It uses Redis as database although it is designed to easily add other database vendors.
+It uses Redis as database although it is designed to easily swap out to other database vendors (e.g, postgresql, sqllite)
 
 It provides the ability to easily change underlying http routing framework (e.g., switch from Chi to Mux or viceversa)
 
-The game engine has been written by adapting the classical [Flood Fill algorithm](https://en.wikipedia.org/wiki/Flood_fill).
+The [game engine]([https://github.com/arllanos/minesweeper-API#game-engine-logic-and-how-to-interpret-the-board](https://github.com/arllanos/minesweeper-API#game-engine-logic-and-how-to-interpret-the-board)) has been written by adapting the classical [Flood Fill algorithm](https://en.wikipedia.org/wiki/Flood_fill).
 
 
-## Running the API server locally
+
+## Running the application locally
 There are two ways to run the API server locally. 
 1. Running the app using docker-compose (recommended). 
-2. Build and run locally on a computer with Golang installed and a local or remote Redis.
+2. Build and running locally.
 
-### Running using docker-compose
+### Option 1. Running using docker-compose
 Starting the server
 ```
 docker-compose up
@@ -22,10 +24,10 @@ Stopping the server
 ```
 docker-compose down --remove-orphans
 ```
-### Build and run locally
+### Option 2. Building and running locally
 Pre-requisites: 
 - If Golang is not installed click [here](https://golang.org/doc/install ) for installation instructions
-- Provison a local Redis instance.
+- Provision a local Redis instance.
 
 #### Build
 ```
@@ -37,41 +39,41 @@ go run .
 ```
 ## REST API Endpoints
 
-### POST - Create User
-```
-http://localhost:8080/users
-```
-Create a user for playing. A user should be created in order to be able to start a new game.
+### Create User
+
+**POST**  `http://localhost:8080/users`
+
+Creates a user for playing. The user should be created before starting a new game.
 
 **Body**
 ```json
 {
-	"username": "myuser"
+	"username": "player1"
 }
 ```
 **Example Request**
 ```bash
 curl --location --request POST 'http://localhost:8080/users' \
 --data-raw '{
-	"username": "myuser"
+	"username": "player1"
 }'
 ```
 **Example Response**
 ```json
 {
-    "username": "myuser",
+    "username": "player1",
     "createdAt": "2020-06-11T13:03:30.917771715-03:00"
 }
 ```
-### PUT - Start/Restart Game
-```
-http://localhost:8080/games
-```
+### Start/Restart Game
+
+**PUT** `http://localhost:8080/## Headinggames`
+
 **Body**
 ```json
 {
-	"name": "mygame1",
-	"username": "myuser",
+	"name": "game1",
+	"username": "player1",
 	"rows": 7,
 	"cols": 7,
 	"mines": 5
@@ -81,8 +83,8 @@ http://localhost:8080/games
 ```bash
 curl --location --request PUT 'http://localhost:8080/games' \
 --data-raw '{
-	"name": "mygame1",
-	"username": "myuser",
+	"name": "game1",
+	"username": "player1",
 	"rows": 7,
 	"cols": 7,
 	"mines": 5
@@ -91,8 +93,8 @@ curl --location --request PUT 'http://localhost:8080/games' \
 **Example Response**
 ```json
 {
-    "name": "mygame1",
-    "username": "myuser",
+    "name": "game1",
+    "username": "player1",
     "rows": 7,
     "cols": 7,
     "mines": 5,
@@ -112,10 +114,10 @@ curl --location --request PUT 'http://localhost:8080/games' \
     "time_spent": 0
 }
 ```
-### POST - Click
-```
-http://localhost:8080/games/mygame1/myuser/click
-```
+### Click
+
+**POST** `http://localhost:8080/games/game1/player1/click`
+
 Click or flag a cell in the game board. Use the `kind` field to indicate either `click` or `flag`
 
 **Body**
@@ -128,13 +130,13 @@ Click or flag a cell in the game board. Use the `kind` field to indicate either 
 ```
 **Example Request**
 ```bash
-curl --location --request POST 'http://localhost:8080/games/mygame1/myuser/click' \ --data-raw '{ "row": 1, "col": 0, "kind": "click" }'
+curl --location --request POST 'http://localhost:8080/games/game1/player1/click' \ --data-raw '{ "row": 1, "col": 0, "kind": "click" }'
 ```
 **Example Response**
 ```json
 {
-    "name": "mygame1",
-    "username": "myuser",
+    "name": "game1",
+    "username": "player1",
     "rows": 7,
     "cols": 7,
     "mines": 5,
@@ -154,15 +156,15 @@ curl --location --request POST 'http://localhost:8080/games/mygame1/myuser/click
     "time_spent": 700
 }
 ```
-### GET - Obtain the Game Board
-```
-http://localhost:8080/games/mygame1/myuser/board
-```
+### Obtain the Game Board
+
+**GET** `http://localhost:8080/games/game1/player1/board`
+
 Get the board in JSON format.
 
 **Example Request**
 ```
-curl --location --request GET 'http://localhost:8080/games/mygame1/myuser/board'
+curl --location --request GET 'http://localhost:8080/games/game1/player1/board'
 ```
 
 **Example Response**
@@ -189,7 +191,8 @@ curl --location --request GET 'http://localhost:8080/games/mygame1/myuser/board'
     ]
 ]
 ```
-Using Postman? You can pretty render the reponse using the Postman Visualize feature. 
+**Note!**
+Using Postman? You can pretty render the response using the Postman Visualize feature. 
 Follow this steps to render the game board in Postman:
 1. Add [this](https://gist.github.com/arllanos/6a57c6b293c0c7280562aef3d97eb248) code to the `Tests` script for the request.
 2. Click `Send` to run the request.
