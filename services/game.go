@@ -43,7 +43,7 @@ func NewGameService(db repository.GameRepository) GameService {
 func (*service) CreateGame(game *types.Game) (*types.Game, error) {
 
 	if !repo.Exists(game.Username) {
-		return nil, errors.New("Username does not exits")
+		return nil, errors.New("user_not_found")
 	}
 
 	// defaults
@@ -100,12 +100,8 @@ func (*service) CreateGame(game *types.Game) (*types.Game, error) {
 }
 
 func (*service) CreateUser(user *types.User) (*types.User, error) {
-	if user.Username == "" {
-		return nil, errors.New("Username not provided")
-	}
-
 	if repo.Exists(user.Username) {
-		return nil, errors.New("User already exists")
+		return nil, errors.New("user_already_exist")
 	}
 
 	user.CreatedAt = time.Now()
@@ -117,8 +113,11 @@ func (*service) Exists(key string) bool {
 }
 
 func (*service) Click(gameName string, userName string, click *types.ClickData) (*types.Game, error) {
-	if !repo.Exists(gameName) || !repo.Exists(userName) {
-		return nil, errors.New("Game or user do not exists")
+	if !repo.Exists(gameName) {
+		return nil, errors.New("game_not_found")
+	}
+	if !repo.Exists(userName) {
+		return nil, errors.New("user_not_found")
 	}
 
 	game, err := repo.GetGame(gameName)
@@ -129,7 +128,7 @@ func (*service) Click(gameName string, userName string, click *types.ClickData) 
 	log.Printf("Click type [%s] request at (%d, %d) for game [%s] with status [%s]", click.Kind, click.Row, click.Col, game.Name, game.Status)
 
 	if click.Kind != "click" && click.Kind != "flag" {
-		return nil, errors.New("Click kind should be either 'click' or 'flag'")
+		return nil, errors.New("bad_click_kind")
 	}
 
 	if game.Status == "ready" {
@@ -139,11 +138,11 @@ func (*service) Click(gameName string, userName string, click *types.ClickData) 
 	}
 
 	if game.Status == "over" {
-		return nil, errors.New("Game is over and does not accept clicks")
+		return nil, errors.New("game_over")
 	}
 
 	if game.Status == "won" {
-		return nil, errors.New("Game is finished and does not accept clicks. You won!!!")
+		return nil, errors.New("game_won")
 	}
 
 	if click.Kind == "click" {
@@ -170,8 +169,11 @@ func (*service) Click(gameName string, userName string, click *types.ClickData) 
 }
 
 func (*service) Board(gameName string, userName string) ([]uint8, error) {
-	if !repo.Exists(gameName) || !repo.Exists(userName) {
-		return nil, errors.New("Game or user do not exists")
+	if !repo.Exists(gameName) {
+		return nil, errors.New("game_not_found")
+	}
+	if !repo.Exists(userName) {
+		return nil, errors.New("user_not_found")
 	}
 
 	game, err := repo.GetGame(gameName)

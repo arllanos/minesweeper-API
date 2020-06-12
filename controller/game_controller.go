@@ -38,8 +38,19 @@ func (*controller) CreateUser(response http.ResponseWriter, request *http.Reques
 		return
 	}
 
+	if user.Username == "" {
+		response.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(response).Encode(errors.ServiceError{Message: "User name not provided"})
+		return
+	}
+
 	result, err1 := gameService.CreateUser(&user)
 	if err1 != nil {
+		if err1.Error() == "user_already_exist" {
+			response.WriteHeader(http.StatusConflict)
+			json.NewEncoder(response).Encode(errors.ServiceError{Message: err1.Error()})
+			return
+		}
 		response.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(response).Encode(errors.ServiceError{Message: err1.Error()})
 		return
@@ -60,6 +71,12 @@ func (*controller) CreateGame(response http.ResponseWriter, request *http.Reques
 
 	result, err1 := gameService.CreateGame(&game)
 	if err1 != nil {
+
+		if err1.Error() == "user_not_found" {
+			response.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(response).Encode(errors.ServiceError{Message: "Username not exists"})
+			return
+		}
 		response.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(response).Encode(errors.ServiceError{Message: err1.Error()})
 		return
@@ -86,6 +103,11 @@ func (*controller) ClickCell(response http.ResponseWriter, request *http.Request
 
 	result, err1 := gameService.Click(gameName, userName, &click)
 	if err1 != nil {
+		if err1.Error() == "bad_click_kind" || err1.Error() == "game_over" || err1.Error() == "game_won" {
+			response.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(response).Encode(errors.ServiceError{Message: err1.Error()})
+			return
+		}
 		response.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(response).Encode(errors.ServiceError{Message: err1.Error()})
 		return
@@ -103,6 +125,11 @@ func (*controller) GetBoard(response http.ResponseWriter, request *http.Request)
 
 	board, err := gameService.Board(gameName, userName)
 	if err != nil {
+		if err.Error() == "user_not_found" || err.Error() == "game_not_found" {
+			response.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(response).Encode(errors.ServiceError{Message: "Username or game not exists"})
+			return
+		}
 		response.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(response).Encode(errors.ServiceError{Message: err.Error()})
 		return
