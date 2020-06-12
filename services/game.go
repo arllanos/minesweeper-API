@@ -182,7 +182,7 @@ func (*service) Board(gameName string, userName string) ([]uint8, error) {
 	}
 
 	if game.Board == nil {
-		return nil, errors.New("This game has no board.")
+		return nil, errors.New("This game has no board")
 	}
 
 	var boardToJSON func(data [][]byte) ([]uint8, error)
@@ -196,11 +196,11 @@ func (*service) Board(gameName string, userName string) ([]uint8, error) {
 			}
 			tmp[i] = fRow
 		}
-		tmpJson, err := json.Marshal(tmp)
+		tmpJSON, err := json.Marshal(tmp)
 		if err != nil {
 			return nil, errors.New("Cannot encode to JSON")
 		}
-		return tmpJson, nil
+		return tmpJSON, nil
 	}
 
 	jBoard, err1 := boardToJSON(game.Board)

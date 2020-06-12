@@ -79,7 +79,7 @@ func clickCell(game *types.Game, i int, j int) error {
 
 	// increment click count if it is a valid click
 	if game.Board[i][j] == 'M' || game.Board[i][j] == 'E' {
-		game.Clicks += 1
+		game.Clicks++
 	}
 
 	if game.Board[i][j] == 'M' {

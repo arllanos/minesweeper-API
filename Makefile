@@ -16,6 +16,9 @@ fmt:
 vet:
 	go vet ./...
 
+test:
+	go test -v ./...
+
 up:
 	docker-compose up --build
 

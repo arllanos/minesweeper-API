@@ -1,4 +1,3 @@
-
 # Minesweeper-API
 Minesweeper game written as a simple REST API using Golang.
 
@@ -6,9 +5,13 @@ It uses Redis as database although it is designed to easily swap out to other da
 
 It provides the ability to easily change underlying http routing framework (e.g., switch from Chi to Mux or viceversa)
 
-The [game engine]([https://github.com/arllanos/minesweeper-API#game-engine-logic-and-how-to-interpret-the-board](https://github.com/arllanos/minesweeper-API#game-engine-logic-and-how-to-interpret-the-board)) has been written by adapting the classical [Flood Fill algorithm](https://en.wikipedia.org/wiki/Flood_fill).
+The game engine has been written by adapting the classical [Flood Fill algorithm](https://en.wikipedia.org/wiki/Flood_fill).
 
-
+**Techincal highligts**
+- Follows clean architecture principles
+- Independent of http framework and data repository technology
+- Use Docker
+- Deployed in Kubernetes AKS (`deployment/k8s-deployment.yaml`)
 
 ## Running the application locally
 There are two ways to run the API server locally. 
@@ -37,13 +40,18 @@ go build -o minesweeper-api
 ```
 go run .
 ```
-## REST API Endpoints
-
+## API Endpoints
 ### Create User
+
+Creates a user for playing. The user should be created before starting a new game.
 
 **POST**  `http://localhost:8080/users`
 
-Creates a user for playing. The user should be created before starting a new game.
+| Code | Description  |
+| ---- | ------------ |
+| 201  | User created |
+| 400  | Bad request  |
+| 500  | Server error |
 
 **Body**
 ```json
@@ -67,15 +75,23 @@ curl --location --request POST 'http://localhost:8080/users' \
 ```
 ### Start/Restart Game
 
-**PUT** `http://localhost:8080/## Headinggames`
+Starts a new game or restart a game
+
+**PUT** `http://localhost:8080/games`
+
+| Code | Description  |
+| ---- | ------------ |
+| 201  | Game created/restarted |
+| 400  | Bad request  |
+| 500  | Server error |
 
 **Body**
 ```json
 {
 	"name": "game1",
 	"username": "player1",
-	"rows": 7,
-	"cols": 7,
+	"rows": 4,
+	"cols": 4,
 	"mines": 5
 }
 ```
@@ -85,8 +101,8 @@ curl --location --request PUT 'http://localhost:8080/games' \
 --data-raw '{
 	"name": "game1",
 	"username": "player1",
-	"rows": 7,
-	"cols": 7,
+	"rows": 4,
+	"cols": 4,
 	"mines": 5
 }'
 ```
@@ -95,18 +111,15 @@ curl --location --request PUT 'http://localhost:8080/games' \
 {
     "name": "game1",
     "username": "player1",
-    "rows": 7,
-    "cols": 7,
+    "rows": 4,
+    "cols": 4,
     "mines": 5,
     "status": "ready",
     "board": [
         "RU1FRUVNRQ==",
         "RUVFRUVFRQ==",
         "RUVFRUVFRQ==",
-        "RUVFRUVFTQ==",
-        "TUVNRUVFRQ==",
-        "RUVFRUVFRQ==",
-        "RUVFRUVFRQ=="
+        "RUVFRUVFTQ=="
     ],
     "clicks": 0,
     "created_at": "2020-06-11T13:05:54.943472481-03:00",
@@ -116,9 +129,17 @@ curl --location --request PUT 'http://localhost:8080/games' \
 ```
 ### Click
 
+Click or flag a cell in the game board. Use the `kind` field to indicate either `click` or `flag`
+
 **POST** `http://localhost:8080/games/game1/player1/click`
 
-Click or flag a cell in the game board. Use the `kind` field to indicate either `click` or `flag`
+| Code | Description  |
+| ---- | ------------ |
+| 200  | Sucessfully applied click on cell |
+| 400  | Bad request (wrong click kind, already won / lost) |
+| 404  | Cell not found |
+| 500  | Server error |
+
 
 **Body**
 ```json
@@ -145,10 +166,7 @@ curl --location --request POST 'http://localhost:8080/games/game1/player1/click'
         "RU1FRUVNRQ==",
         "MUVFRUVFRQ==",
         "RUVFRUVFRQ==",
-        "RUVFRUVFTQ==",
-        "TUVNRUVFRQ==",
-        "RUVFRUVFRQ==",
-        "RUVFRUVFRQ=="
+        "RUVFRUVFTQ=="
     ],
     "clicks": 1,
     "created_at": "2020-06-11T13:05:54.943472481-03:00",
@@ -156,11 +174,17 @@ curl --location --request POST 'http://localhost:8080/games/game1/player1/click'
     "time_spent": 700
 }
 ```
-### Obtain the Game Board
+### Get the Game Board
+
+Get the board in JSON format.
 
 **GET** `http://localhost:8080/games/game1/player1/board`
 
-Get the board in JSON format.
+| Code | Description  |
+| ---- | ------------ |
+| 200  | OK |
+| 404  | User / Game not found |
+| 500  | Server error |
 
 **Example Request**
 ```
@@ -174,16 +198,10 @@ curl --location --request GET 'http://localhost:8080/games/game1/player1/board'
         "E",
         "M",
         "E",
-        "E",
-        "E",
-        "M",
         "E"
     ],
 	... omitted some data to shorten
     [
-        "E",
-        "E",
-        "E",
         "E",
         "E",
         "E",
