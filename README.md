@@ -194,26 +194,16 @@ curl --location --request GET 'http://localhost:8080/games/game1/player1/board'
 **Example Response**
 ```json
 [
-    [
-        "E",
-        "M",
-        "E",
-        "E"
-    ],
-	... omitted some data to shorten
-    [
-        "E",
-        "E",
-        "E",
-        "E"
-    ]
+    ["E", "M", "M", "E"],
+    ["E", "2", "E", "M"],
+    ["E", "E", "E", "E"],
+    ["E", "M", "M", "E"]
 ]
 ```
 **Visualizing board in Postman**
 
-You can render the GET board response using the Postman Visualization feature. 
-Follow this steps to render the game board in Postman:
-1. Add following code to the `Scripts > Post-response` tab for the request
+To render the GET board response using the Postman Visualization feature, follow these steps:
+1. In Postman, add following code to the `Scripts > Post-response` tab.
     ```js
     let jsonResponse = pm.response.json();
 
