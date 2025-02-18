@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:1.23
 
 LABEL maintainer="Ariel Llanos"
 
