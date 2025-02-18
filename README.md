@@ -21,11 +21,11 @@ There are two ways to run the API server locally.
 ### Option 1. Running using docker-compose
 Starting the server
 ```
-docker-compose up
+docker compose up -d
 ```
 Stopping the server
 ```
-docker-compose down --remove-orphans
+docker compose down --remove-orphans
 ```
 ### Option 2. Building and running locally
 Pre-requisites: 
@@ -209,10 +209,28 @@ curl --location --request GET 'http://localhost:8080/games/game1/player1/board'
     ]
 ]
 ```
-**Note!**
-Using Postman? You can pretty render the response using the Postman Visualize feature. 
+**Visualizing board in Postman**
+
+You can render the GET board response using the Postman Visualization feature. 
 Follow this steps to render the game board in Postman:
-1. Add [this](https://gist.github.com/arllanos/6a57c6b293c0c7280562aef3d97eb248) code to the `Tests` script for the request.
+1. Add following code to the `Scripts > Post-response` tab for the request
+    ```js
+    let jsonResponse = pm.response.json();
+
+    // Generate an HTML table from the JSON array
+    let table = '<table border="1" style="border-collapse: collapse; text-align: center;">';
+    for (let row of jsonResponse) {
+        table += '<tr>';
+        for (let cell of row) {
+            table += `<td style="padding: 10px; width: 30px;">${cell}</td>`;
+        }
+        table += '</tr>';
+    }
+    table += '</table>';
+
+    // Set the visualization
+    pm.visualizer.set(table);
+    ```
 2. Click `Send` to run the request.
 3. Click the `Visualize` tab to render the game board.
 
