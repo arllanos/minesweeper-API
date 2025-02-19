@@ -15,4 +15,4 @@ ENV PORT 8080
 
 RUN make build
 
-CMD ["./minesweeper-api"]
+CMD ["./bin/minesweeper-api"]
