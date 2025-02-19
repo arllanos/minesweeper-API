@@ -18,18 +18,25 @@ func NewChiRouter() Router {
 }
 
 func (*chiRouter) GET(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	chiDispatcher.Get(uri, f)
+	chiDispatcher.Get(uri, WrapHandler(f, chiExtractParams))
 }
 
 func (*chiRouter) POST(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	chiDispatcher.Post(uri, f)
+	chiDispatcher.Post(uri, WrapHandler(f, chiExtractParams))
 }
 
 func (*chiRouter) PUT(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	chiDispatcher.Put(uri, f)
+	chiDispatcher.Put(uri, WrapHandler(f, chiExtractParams))
 }
 
 func (*chiRouter) SERVE(port string) {
 	log.Printf("Chi HTTP server running on port %v", port)
 	http.ListenAndServe(":"+port, chiDispatcher)
+}
+
+func chiExtractParams(r *http.Request) map[string]string {
+	return map[string]string{
+		"gameName": chi.URLParam(r, "gamename"),
+		"userName": chi.URLParam(r, "username"),
+	}
 }

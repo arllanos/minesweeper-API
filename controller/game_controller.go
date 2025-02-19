@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
 	"github.com/arllanos/minesweeper-API/errors"
 	"github.com/arllanos/minesweeper-API/services"
@@ -96,10 +95,9 @@ func (*controller) ClickCell(response http.ResponseWriter, request *http.Request
 		return
 	}
 
-	// TODO: delegate parsing of route variables to the http router
-	URLpath := strings.Split(request.URL.Path, "/")
-	userName := URLpath[len(URLpath)-2]
-	gameName := URLpath[len(URLpath)-3]
+	// extract path variables from request context (router-specific logic handled externally)
+	gameName := request.Context().Value("gameName").(string)
+	userName := request.Context().Value("userName").(string)
 
 	result, err1 := gameService.Click(gameName, userName, &click)
 	if err1 != nil {
@@ -118,10 +116,10 @@ func (*controller) ClickCell(response http.ResponseWriter, request *http.Request
 
 func (*controller) GetBoard(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	// TODO: delegate parsing of route variables to the http router
-	URLpath := strings.Split(request.URL.Path, "/")
-	userName := URLpath[len(URLpath)-2]
-	gameName := URLpath[len(URLpath)-3]
+
+	// extract path variables from request context (router-specific logic handled externally)
+	gameName := request.Context().Value("gameName").(string)
+	userName := request.Context().Value("userName").(string)
 
 	board, err := gameService.Board(gameName, userName)
 	if err != nil {

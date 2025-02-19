@@ -18,18 +18,26 @@ func NewMuxRouter() Router {
 }
 
 func (*muxRouter) GET(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	muxDispatcher.HandleFunc(uri, f).Methods("GET")
+	muxDispatcher.HandleFunc(uri, WrapHandler(f, muxExtractParams)).Methods(http.MethodGet)
 }
 
 func (*muxRouter) POST(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	muxDispatcher.HandleFunc(uri, f).Methods("POST")
+	muxDispatcher.HandleFunc(uri, WrapHandler(f, muxExtractParams)).Methods(http.MethodPost)
 }
 
 func (*muxRouter) PUT(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	muxDispatcher.HandleFunc(uri, f).Methods("PUT")
+	muxDispatcher.HandleFunc(uri, WrapHandler(f, muxExtractParams)).Methods(http.MethodPut)
 }
 
 func (*muxRouter) SERVE(port string) {
 	log.Printf("Mux HTTP server running on port %v", port)
 	http.ListenAndServe(":"+port, muxDispatcher)
+}
+
+func muxExtractParams(r *http.Request) map[string]string {
+	vars := mux.Vars(r)
+	return map[string]string{
+		"gameName": vars["gamename"],
+		"userName": vars["username"],
+	}
 }
