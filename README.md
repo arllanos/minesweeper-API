@@ -34,11 +34,11 @@ Pre-requisites:
 
 #### Build
 ```
-go build -o minesweeper-api
+make build
 ```
 #### Run
 ```
-go run .
+make run
 ```
 ## API Endpoints
 ### Create User
