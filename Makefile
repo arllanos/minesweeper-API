@@ -1,6 +1,6 @@
 VERSION := 0.1.0
 PROJECT := $(shell basename "$(PWD)")
-BINNAME := minesweeper-api
+BINNAME := bin/minesweeper-api
 LDFLAGS=-ldflags "-X=main.Version=$(VERSION) -X=main.Build=$(BUILD)"
 
 build: fmt vet
@@ -20,7 +20,7 @@ test:
 	go test -v ./...
 
 up:
-	docker-compose up --build
+	docker compose up -d --build
 
 down:
-	docker-compose down --remove-orphans
+	docker compose down --remove-orphans
