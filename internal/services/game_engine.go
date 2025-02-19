@@ -6,14 +6,14 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/arllanos/minesweeper-API/types"
+	"github.com/arllanos/minesweeper-API/internal/domain"
 )
 
 func init() {
 	rand.Seed(time.Now().Unix())
 }
 
-func generateBoard(game *types.Game) {
+func generateBoard(game *domain.Game) {
 	// initialize board
 	game.Board = make([][]byte, game.Rows)
 	for i := range game.Board {
@@ -35,7 +35,7 @@ func generateBoard(game *types.Game) {
 	}
 }
 
-func clickCell(game *types.Game, i int, j int) error {
+func clickCell(game *domain.Game, i int, j int) error {
 	// NW, N, NE, SE, S, SW, W, E direction vectors
 	dirVector := [8][2]int{{-1, -1}, {-1, 0}, {-1, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {0, 1}}
 	ASCII0 := 48
@@ -93,7 +93,7 @@ func clickCell(game *types.Game, i int, j int) error {
 	return nil
 }
 
-func flagCell(game *types.Game, i int, j int) error {
+func flagCell(game *domain.Game, i int, j int) error {
 
 	if !(i >= 0 && i < game.Rows && j >= 0 && j < game.Cols) {
 		return errors.New("Flagged cell out of bounds")
@@ -111,7 +111,7 @@ func flagCell(game *types.Game, i int, j int) error {
 	return nil
 }
 
-func weHaveWinner(game *types.Game) bool {
+func weHaveWinner(game *domain.Game) bool {
 	// we have a winner if:	no 'E', no 'e' and no 'X'
 
 	for i, _ := range game.Board {

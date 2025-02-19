@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/arllanos/minesweeper-API/repository"
-	"github.com/arllanos/minesweeper-API/types"
+	"github.com/arllanos/minesweeper-API/internal/domain"
+	"github.com/arllanos/minesweeper-API/internal/repository"
 	"github.com/segmentio/ksuid"
 )
 
@@ -22,10 +22,10 @@ const (
 )
 
 type GameService interface {
-	CreateGame(game *types.Game) (*types.Game, error)
-	CreateUser(user *types.User) (*types.User, error)
+	CreateGame(game *domain.Game) (*domain.Game, error)
+	CreateUser(user *domain.User) (*domain.User, error)
 	Exists(key string) bool
-	Click(gameName string, userName string, data *types.ClickData) (*types.Game, error)
+	Click(gameName string, userName string, data *domain.ClickData) (*domain.Game, error)
 	Board(gameName string, userName string) ([]uint8, error)
 }
 
@@ -40,7 +40,7 @@ func NewGameService(db repository.GameRepository) GameService {
 	return &service{}
 }
 
-func (*service) CreateGame(game *types.Game) (*types.Game, error) {
+func (*service) CreateGame(game *domain.Game) (*domain.Game, error) {
 
 	if !repo.Exists(game.Username) {
 		return nil, errors.New("user_not_found")
@@ -99,7 +99,7 @@ func (*service) CreateGame(game *types.Game) (*types.Game, error) {
 	return game, err
 }
 
-func (*service) CreateUser(user *types.User) (*types.User, error) {
+func (*service) CreateUser(user *domain.User) (*domain.User, error) {
 	if repo.Exists(user.Username) {
 		return nil, errors.New("user_already_exist")
 	}
@@ -112,7 +112,7 @@ func (*service) Exists(key string) bool {
 	return repo.Exists(key)
 }
 
-func (*service) Click(gameName string, userName string, click *types.ClickData) (*types.Game, error) {
+func (*service) Click(gameName string, userName string, click *domain.ClickData) (*domain.Game, error) {
 	if !repo.Exists(gameName) {
 		return nil, errors.New("game_not_found")
 	}

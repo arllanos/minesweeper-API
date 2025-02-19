@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/arllanos/minesweeper-API/types"
+	"github.com/arllanos/minesweeper-API/internal/domain"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -24,11 +24,11 @@ func NewRedisRepository() GameRepository {
 	}
 }
 
-func (r *redisRepo) SaveGame(game *types.Game) (*types.Game, error) {
+func (r *redisRepo) SaveGame(game *domain.Game) (*domain.Game, error) {
 	// reset the auxiliar board (delete & save)
 	k := game.Name + BoardSuffix
 	if err := r.Delete(k); err != nil {
-		return nil, errors.New("Error deleting game board")
+		return nil, errors.New("rrror deleting game board")
 	}
 	r.saveBoard(k, game.Board)
 
@@ -42,10 +42,10 @@ func (r *redisRepo) SaveGame(game *types.Game) (*types.Game, error) {
 	return game, err
 }
 
-func (r *redisRepo) GetUser(key string) (*types.User, error) {
+func (r *redisRepo) GetUser(key string) (*domain.User, error) {
 	data, err := redis.String(r.Do("GET", key))
 
-	var user types.User
+	var user domain.User
 	err = json.Unmarshal([]byte(data), &user)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func (r *redisRepo) GetUser(key string) (*types.User, error) {
 	return &user, nil
 }
 
-func (r *redisRepo) SaveUser(user *types.User) (*types.User, error) {
+func (r *redisRepo) SaveUser(user *domain.User) (*domain.User, error) {
 	key := user.Username
 	jData, err := json.Marshal(user)
 	if err != nil {
@@ -66,10 +66,10 @@ func (r *redisRepo) SaveUser(user *types.User) (*types.User, error) {
 	return user, err
 }
 
-func (r *redisRepo) GetGame(key string) (*types.Game, error) {
+func (r *redisRepo) GetGame(key string) (*domain.Game, error) {
 	data, err := redis.String(r.Do("GET", key))
 
-	var game types.Game
+	var game domain.Game
 	err = json.Unmarshal([]byte(data), &game)
 	if err != nil {
 		return nil, err
