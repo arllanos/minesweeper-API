@@ -225,7 +225,7 @@ To render the GET board response using the Postman Visualization feature, follow
 3. Click the `Visualize` tab to render the game board.
 
 ## Game engine logic and how to interpret the board
-The game **board** is part of the Game structure `types/game.go`.
+The game **board** is part of the Game structure `internal/domain/game.go`.
 This board is a 2-Dimensional array of bytes an its data is coded as follows:
 
 **Unrevealed values**
