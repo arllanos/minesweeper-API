@@ -30,7 +30,7 @@ docker compose down --remove-orphans
 ### Option 2. Building and running locally
 Pre-requisites: 
 - If Golang is not installed, click [here](https://golang.org/doc/install ) for installation instructions
-- Provision a local Redis instance.
+- Provision and run a local Redis instance.
 
 #### Build
 ```
