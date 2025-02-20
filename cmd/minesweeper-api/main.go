@@ -16,14 +16,14 @@ func main() {
 	// initialize dependencies
 	gameRepository := repository.NewRedisRepository()
 	gameService := services.NewGameService(gameRepository)
-	gameController := handler.NewGameController(gameService)
+	gameHandler := handler.NewGameHandler(gameService)
 	httpRouter := router.NewChiRouter()
 
 	// register routes
-	httpRouter.POST("/users", gameController.CreateUser)
-	httpRouter.PUT("/games", gameController.CreateGame)
-	httpRouter.POST("/games/{gamename}/{username}/click", gameController.ClickCell)
-	httpRouter.GET("/games/{gamename}/{username}/board", gameController.GetBoard)
+	httpRouter.POST("/users", gameHandler.CreateUser)
+	httpRouter.PUT("/games", gameHandler.CreateGame)
+	httpRouter.POST("/games/{gamename}/{username}/click", gameHandler.ClickCell)
+	httpRouter.GET("/games/{gamename}/{username}/board", gameHandler.GetBoard)
 
 	// start the server
 	port := os.Getenv("PORT")
