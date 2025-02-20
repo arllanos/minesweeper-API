@@ -29,9 +29,9 @@ func (*muxRouter) PUT(uri string, f func(w http.ResponseWriter, r *http.Request)
 	muxDispatcher.HandleFunc(uri, WrapHandler(f, muxExtractParams)).Methods(http.MethodPut)
 }
 
-func (*muxRouter) SERVE(port string) {
+func (*muxRouter) SERVE(port string) error {
 	log.Printf("Mux HTTP server running on port %v", port)
-	http.ListenAndServe(":"+port, muxDispatcher)
+	return http.ListenAndServe(":"+port, muxDispatcher)
 }
 
 func muxExtractParams(r *http.Request) map[string]string {

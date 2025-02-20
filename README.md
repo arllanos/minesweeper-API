@@ -11,7 +11,7 @@ The game engine has been written by adapting the classical [Flood Fill algorithm
 - Follows clean architecture principles
 - Independent of http framework and data repository technology
 - Use Docker
-- Deployed in Kubernetes AKS (`deployment/k8s-deployment.yaml`)
+- Deployable in Kubernetes (`deployment/k8s-deployment.yaml`)
 
 ## Running the application locally
 There are two ways to run the API server locally. 
