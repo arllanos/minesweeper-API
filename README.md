@@ -11,7 +11,7 @@ The game engine has been written by adapting the classical [Flood Fill algorithm
 - Follows clean architecture principles
 - Independent of http framework and data repository technology
 - Use Docker
-- Deployed in Kubernetes AKS (`deployment/k8s-deployment.yaml`)
+- Deployable in Kubernetes (`deployment/k8s-deployment.yaml`)
 
 ## Running the application locally
 There are two ways to run the API server locally. 
@@ -21,24 +21,24 @@ There are two ways to run the API server locally.
 ### Option 1. Running using docker-compose
 Starting the server
 ```
-docker-compose up
+docker compose up -d
 ```
 Stopping the server
 ```
-docker-compose down --remove-orphans
+docker compose down --remove-orphans
 ```
 ### Option 2. Building and running locally
 Pre-requisites: 
 - If Golang is not installed, click [here](https://golang.org/doc/install ) for installation instructions
-- Provision a local Redis instance.
+- Provision and run a local Redis instance.
 
 #### Build
 ```
-go build -o minesweeper-api
+make build
 ```
 #### Run
 ```
-go run .
+make run
 ```
 ## API Endpoints
 ### Create User
@@ -194,30 +194,38 @@ curl --location --request GET 'http://localhost:8080/games/game1/player1/board'
 **Example Response**
 ```json
 [
-    [
-        "E",
-        "M",
-        "E",
-        "E"
-    ],
-	... omitted some data to shorten
-    [
-        "E",
-        "E",
-        "E",
-        "E"
-    ]
+    ["E", "M", "M", "E"],
+    ["E", "2", "E", "M"],
+    ["E", "E", "E", "E"],
+    ["E", "M", "M", "E"]
 ]
 ```
-**Note!**
-Using Postman? You can pretty render the response using the Postman Visualize feature. 
-Follow this steps to render the game board in Postman:
-1. Add [this](https://gist.github.com/arllanos/6a57c6b293c0c7280562aef3d97eb248) code to the `Tests` script for the request.
+**Visualizing board in Postman**
+
+To render the GET board response using the Postman Visualization feature, follow these steps:
+1. In Postman, add following code to the `Scripts > Post-response` tab.
+    ```js
+    let jsonResponse = pm.response.json();
+
+    // Generate an HTML table from the JSON array
+    let table = '<table border="1" style="border-collapse: collapse; text-align: center;">';
+    for (let row of jsonResponse) {
+        table += '<tr>';
+        for (let cell of row) {
+            table += `<td style="padding: 10px; width: 30px;">${cell}</td>`;
+        }
+        table += '</tr>';
+    }
+    table += '</table>';
+
+    // Set the visualization
+    pm.visualizer.set(table);
+    ```
 2. Click `Send` to run the request.
 3. Click the `Visualize` tab to render the game board.
 
 ## Game engine logic and how to interpret the board
-The game **board** is part of the Game structure `types/game.go`.
+The game **board** is part of the Game structure `internal/domain/game.go`.
 This board is a 2-Dimensional array of bytes an its data is coded as follows:
 
 **Unrevealed values**

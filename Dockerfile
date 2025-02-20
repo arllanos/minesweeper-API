@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:1.23
 
 LABEL maintainer="Ariel Llanos"
 
@@ -15,4 +15,4 @@ ENV PORT 8080
 
 RUN make build
 
-CMD ["./minesweeper-api"]
+CMD ["./bin/minesweeper-api"]

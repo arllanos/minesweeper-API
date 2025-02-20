@@ -1,36 +1,34 @@
-package controller
+package handler
 
 import (
 	"encoding/json"
 	"net/http"
-	"strings"
 
-	"github.com/arllanos/minesweeper-API/errors"
-	"github.com/arllanos/minesweeper-API/services"
-	"github.com/arllanos/minesweeper-API/types"
+	"github.com/arllanos/minesweeper-API/internal/domain"
+	"github.com/arllanos/minesweeper-API/internal/errors"
+	"github.com/arllanos/minesweeper-API/internal/services"
 )
 
-type controller struct{}
-
-var (
+type handler struct {
 	gameService services.GameService
-)
+}
 
-type GameController interface {
+type GameHandler interface {
 	CreateUser(response http.ResponseWriter, request *http.Request)
 	CreateGame(response http.ResponseWriter, request *http.Request)
 	ClickCell(response http.ResponseWriter, request *http.Request)
 	GetBoard(response http.ResponseWriter, request *http.Request)
 }
 
-func NewGameController(service services.GameService) GameController {
-	gameService = service
-	return &controller{}
+func NewGameHandler(service services.GameService) GameHandler {
+	return &handler{
+		gameService: service,
+	}
 }
 
-func (*controller) CreateUser(response http.ResponseWriter, request *http.Request) {
+func (h *handler) CreateUser(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	var user types.User
+	var user domain.User
 	err := json.NewDecoder(request.Body).Decode(&user)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
@@ -44,7 +42,7 @@ func (*controller) CreateUser(response http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	result, err1 := gameService.CreateUser(&user)
+	result, err1 := h.gameService.CreateUser(&user)
 	if err1 != nil {
 		if err1.Error() == "user_already_exist" {
 			response.WriteHeader(http.StatusConflict)
@@ -59,9 +57,9 @@ func (*controller) CreateUser(response http.ResponseWriter, request *http.Reques
 	json.NewEncoder(response).Encode(result)
 }
 
-func (*controller) CreateGame(response http.ResponseWriter, request *http.Request) {
+func (h *handler) CreateGame(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	var game types.Game
+	var game domain.Game
 	err := json.NewDecoder(request.Body).Decode(&game)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
@@ -69,9 +67,8 @@ func (*controller) CreateGame(response http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	result, err1 := gameService.CreateGame(&game)
+	result, err1 := h.gameService.CreateGame(&game)
 	if err1 != nil {
-
 		if err1.Error() == "user_not_found" {
 			response.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(response).Encode(errors.ServiceError{Message: "Username not exists"})
@@ -86,9 +83,9 @@ func (*controller) CreateGame(response http.ResponseWriter, request *http.Reques
 	json.NewEncoder(response).Encode(result)
 }
 
-func (*controller) ClickCell(response http.ResponseWriter, request *http.Request) {
+func (h *handler) ClickCell(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	var click types.ClickData
+	var click domain.ClickData
 	err := json.NewDecoder(request.Body).Decode(&click)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
@@ -96,12 +93,11 @@ func (*controller) ClickCell(response http.ResponseWriter, request *http.Request
 		return
 	}
 
-	// TODO: delegate parsing of route variables to the http router
-	URLpath := strings.Split(request.URL.Path, "/")
-	userName := URLpath[len(URLpath)-2]
-	gameName := URLpath[len(URLpath)-3]
+	// extract path variables from request context (router-specific logic handled externally)
+	gameName := request.Context().Value("gameName").(string)
+	userName := request.Context().Value("userName").(string)
 
-	result, err1 := gameService.Click(gameName, userName, &click)
+	result, err1 := h.gameService.Click(gameName, userName, &click)
 	if err1 != nil {
 		if err1.Error() == "bad_click_kind" || err1.Error() == "game_over" || err1.Error() == "game_won" {
 			response.WriteHeader(http.StatusBadRequest)
@@ -116,14 +112,14 @@ func (*controller) ClickCell(response http.ResponseWriter, request *http.Request
 	json.NewEncoder(response).Encode(result)
 }
 
-func (*controller) GetBoard(response http.ResponseWriter, request *http.Request) {
+func (h *handler) GetBoard(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	// TODO: delegate parsing of route variables to the http router
-	URLpath := strings.Split(request.URL.Path, "/")
-	userName := URLpath[len(URLpath)-2]
-	gameName := URLpath[len(URLpath)-3]
 
-	board, err := gameService.Board(gameName, userName)
+	// extract path variables from request context (router-specific logic handled externally)
+	gameName := request.Context().Value("gameName").(string)
+	userName := request.Context().Value("userName").(string)
+
+	board, err := h.gameService.Board(gameName, userName)
 	if err != nil {
 		if err.Error() == "user_not_found" || err.Error() == "game_not_found" {
 			response.WriteHeader(http.StatusNotFound)
@@ -137,5 +133,4 @@ func (*controller) GetBoard(response http.ResponseWriter, request *http.Request)
 
 	response.WriteHeader(http.StatusOK)
 	_, _ = response.Write([]byte(board))
-
 }

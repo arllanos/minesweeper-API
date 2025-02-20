@@ -6,14 +6,13 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/arllanos/minesweeper-API/types"
+	"github.com/arllanos/minesweeper-API/internal/domain"
 )
 
-func init() {
-	rand.Seed(time.Now().Unix())
-}
+// create local random number genrator
+var randg = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-func generateBoard(game *types.Game) {
+func generateBoard(game *domain.Game) {
 	// initialize board
 	game.Board = make([][]byte, game.Rows)
 	for i := range game.Board {
@@ -26,8 +25,8 @@ func generateBoard(game *types.Game) {
 	// plant mines randomly
 	i := 0
 	for i < game.Mines {
-		x := rand.Intn(game.Rows)
-		y := rand.Intn(game.Cols)
+		x := randg.Intn(game.Rows)
+		y := randg.Intn(game.Cols)
 		if game.Board[x][y] != 'M' {
 			game.Board[x][y] = 'M'
 			i++
@@ -35,7 +34,7 @@ func generateBoard(game *types.Game) {
 	}
 }
 
-func clickCell(game *types.Game, i int, j int) error {
+func clickCell(game *domain.Game, i int, j int) error {
 	// NW, N, NE, SE, S, SW, W, E direction vectors
 	dirVector := [8][2]int{{-1, -1}, {-1, 0}, {-1, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {0, 1}}
 	ASCII0 := 48
@@ -69,12 +68,12 @@ func clickCell(game *types.Game, i int, j int) error {
 	}
 
 	if !(i >= 0 && i < game.Rows && j >= 0 && j < game.Cols) {
-		return errors.New("Clicked cell out of bounds")
+		return errors.New("clicked cell out of bounds")
 	}
 
 	// return if it is a flagged cell
 	if game.Board[i][j] == 'm' || game.Board[i][j] == 'e' {
-		return errors.New("Clicked cell is flagged")
+		return errors.New("clicked cell is flagged")
 	}
 
 	// increment click count if it is a valid click
@@ -93,10 +92,10 @@ func clickCell(game *types.Game, i int, j int) error {
 	return nil
 }
 
-func flagCell(game *types.Game, i int, j int) error {
+func flagCell(game *domain.Game, i int, j int) error {
 
 	if !(i >= 0 && i < game.Rows && j >= 0 && j < game.Cols) {
-		return errors.New("Flagged cell out of bounds")
+		return errors.New("flagged cell out of bounds")
 	}
 
 	// only vealed cells M and E can be flagged / unflagged
@@ -111,7 +110,7 @@ func flagCell(game *types.Game, i int, j int) error {
 	return nil
 }
 
-func weHaveWinner(game *types.Game) bool {
+func weHaveWinner(game *domain.Game) bool {
 	// we have a winner if:	no 'E', no 'e' and no 'X'
 
 	for i, _ := range game.Board {
