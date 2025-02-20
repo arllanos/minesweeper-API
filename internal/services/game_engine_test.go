@@ -3,12 +3,12 @@ package services
 import (
 	"testing"
 
-	"github.com/arllanos/minesweeper-API/types"
+	"github.com/arllanos/minesweeper-API/internal/domain"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestClickCellOutOfBounds(t *testing.T) {
-	var game types.Game
+	var game domain.Game
 	game.Name = "TestGame1"
 	game.Username = "TestPlayer1"
 	game.Rows = 4
@@ -21,7 +21,7 @@ func TestClickCellOutOfBounds(t *testing.T) {
 }
 
 func TestClickCellWithinBounds(t *testing.T) {
-	var game types.Game
+	var game domain.Game
 	game.Name = "TestGame1"
 	game.Username = "TestPlayer1"
 	game.Rows = 4

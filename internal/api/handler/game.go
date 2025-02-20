@@ -1,12 +1,12 @@
-package controller
+package handler
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/arllanos/minesweeper-API/errors"
-	"github.com/arllanos/minesweeper-API/services"
-	"github.com/arllanos/minesweeper-API/types"
+	"github.com/arllanos/minesweeper-API/internal/domain"
+	"github.com/arllanos/minesweeper-API/internal/errors"
+	"github.com/arllanos/minesweeper-API/internal/services"
 )
 
 type controller struct{}
@@ -29,7 +29,7 @@ func NewGameController(service services.GameService) GameController {
 
 func (*controller) CreateUser(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	var user types.User
+	var user domain.User
 	err := json.NewDecoder(request.Body).Decode(&user)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
@@ -60,7 +60,7 @@ func (*controller) CreateUser(response http.ResponseWriter, request *http.Reques
 
 func (*controller) CreateGame(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	var game types.Game
+	var game domain.Game
 	err := json.NewDecoder(request.Body).Decode(&game)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
@@ -87,7 +87,7 @@ func (*controller) CreateGame(response http.ResponseWriter, request *http.Reques
 
 func (*controller) ClickCell(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	var click types.ClickData
+	var click domain.ClickData
 	err := json.NewDecoder(request.Body).Decode(&click)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)

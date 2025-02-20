@@ -9,7 +9,7 @@ type Router interface {
 	GET(uri string, f func(w http.ResponseWriter, r *http.Request))
 	POST(uri string, f func(w http.ResponseWriter, r *http.Request))
 	PUT(uri string, f func(w http.ResponseWriter, r *http.Request))
-	SERVE(port string)
+	SERVE(port string) error
 }
 
 func WrapHandler(f func(w http.ResponseWriter, r *http.Request), getParams func(r *http.Request) map[string]string) http.HandlerFunc {
