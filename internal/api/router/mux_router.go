@@ -7,31 +7,29 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type muxRouter struct{}
-
-var (
-	muxDispatcher = mux.NewRouter()
-)
+type muxRouter struct {
+	dispatcher *mux.Router
+}
 
 func NewMuxRouter() Router {
-	return &muxRouter{}
+	return &muxRouter{dispatcher: mux.NewRouter()}
 }
 
-func (*muxRouter) GET(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	muxDispatcher.HandleFunc(uri, WrapHandler(f, muxExtractParams)).Methods(http.MethodGet)
+func (r *muxRouter) GET(uri string, f func(w http.ResponseWriter, r *http.Request)) {
+	r.dispatcher.HandleFunc(uri, WrapHandler(f, muxExtractParams)).Methods(http.MethodGet)
 }
 
-func (*muxRouter) POST(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	muxDispatcher.HandleFunc(uri, WrapHandler(f, muxExtractParams)).Methods(http.MethodPost)
+func (r *muxRouter) POST(uri string, f func(w http.ResponseWriter, r *http.Request)) {
+	r.dispatcher.HandleFunc(uri, WrapHandler(f, muxExtractParams)).Methods(http.MethodPost)
 }
 
-func (*muxRouter) PUT(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	muxDispatcher.HandleFunc(uri, WrapHandler(f, muxExtractParams)).Methods(http.MethodPut)
+func (r *muxRouter) PUT(uri string, f func(w http.ResponseWriter, r *http.Request)) {
+	r.dispatcher.HandleFunc(uri, WrapHandler(f, muxExtractParams)).Methods(http.MethodPut)
 }
 
-func (*muxRouter) SERVE(port string) error {
+func (r *muxRouter) SERVE(port string) error {
 	log.Printf("Mux HTTP server running on port %v", port)
-	return http.ListenAndServe(":"+port, muxDispatcher)
+	return http.ListenAndServe(":"+port, r.dispatcher)
 }
 
 func muxExtractParams(r *http.Request) map[string]string {

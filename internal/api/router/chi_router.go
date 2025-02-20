@@ -7,31 +7,29 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type chiRouter struct{}
-
-var (
-	chiDispatcher = chi.NewRouter()
-)
+type chiRouter struct {
+	dispatcher *chi.Mux
+}
 
 func NewChiRouter() Router {
-	return &chiRouter{}
+	return &chiRouter{dispatcher: chi.NewRouter()}
 }
 
-func (*chiRouter) GET(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	chiDispatcher.Get(uri, WrapHandler(f, chiExtractParams))
+func (r *chiRouter) GET(uri string, f func(w http.ResponseWriter, r *http.Request)) {
+	r.dispatcher.Get(uri, WrapHandler(f, chiExtractParams))
 }
 
-func (*chiRouter) POST(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	chiDispatcher.Post(uri, WrapHandler(f, chiExtractParams))
+func (r *chiRouter) POST(uri string, f func(w http.ResponseWriter, r *http.Request)) {
+	r.dispatcher.Post(uri, WrapHandler(f, chiExtractParams))
 }
 
-func (*chiRouter) PUT(uri string, f func(w http.ResponseWriter, r *http.Request)) {
-	chiDispatcher.Put(uri, WrapHandler(f, chiExtractParams))
+func (r *chiRouter) PUT(uri string, f func(w http.ResponseWriter, r *http.Request)) {
+	r.dispatcher.Put(uri, WrapHandler(f, chiExtractParams))
 }
 
-func (*chiRouter) SERVE(port string) error {
+func (r *chiRouter) SERVE(port string) error {
 	log.Printf("Chi HTTP server running on port %v", port)
-	return http.ListenAndServe(":"+port, chiDispatcher)
+	return http.ListenAndServe(":"+port, r.dispatcher)
 }
 
 func chiExtractParams(r *http.Request) map[string]string {

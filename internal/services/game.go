@@ -29,20 +29,17 @@ type GameService interface {
 	Board(gameName string, userName string) ([]uint8, error)
 }
 
-type service struct{}
-
-var (
+type service struct {
 	repo repository.GameRepository
-)
-
-func NewGameService(db repository.GameRepository) GameService {
-	repo = db
-	return &service{}
 }
 
-func (*service) CreateGame(game *domain.Game) (*domain.Game, error) {
+func NewGameService(db repository.GameRepository) GameService {
+	return &service{repo: db}
+}
 
-	if !repo.Exists(game.Username) {
+func (s *service) CreateGame(game *domain.Game) (*domain.Game, error) {
+
+	if !s.repo.Exists(game.Username) {
 		return nil, errors.New("user_not_found")
 	}
 
@@ -90,37 +87,37 @@ func (*service) CreateGame(game *domain.Game) (*domain.Game, error) {
 	// start the game with an initialized board
 	game.Status = "ready"
 	generateBoard(game)
-	_, err := repo.SaveGame(game)
+	_, err := s.repo.SaveGame(game)
 
 	if err != nil {
-		return nil, errors.New("Error saving game")
+		return nil, errors.New("error saving game")
 	}
 
 	return game, err
 }
 
-func (*service) CreateUser(user *domain.User) (*domain.User, error) {
-	if repo.Exists(user.Username) {
+func (s *service) CreateUser(user *domain.User) (*domain.User, error) {
+	if s.repo.Exists(user.Username) {
 		return nil, errors.New("user_already_exist")
 	}
 
 	user.CreatedAt = time.Now()
-	return repo.SaveUser(user)
+	return s.repo.SaveUser(user)
 }
 
-func (*service) Exists(key string) bool {
-	return repo.Exists(key)
+func (s *service) Exists(key string) bool {
+	return s.repo.Exists(key)
 }
 
-func (*service) Click(gameName string, userName string, click *domain.ClickData) (*domain.Game, error) {
-	if !repo.Exists(gameName) {
+func (s *service) Click(gameName string, userName string, click *domain.ClickData) (*domain.Game, error) {
+	if !s.repo.Exists(gameName) {
 		return nil, errors.New("game_not_found")
 	}
-	if !repo.Exists(userName) {
+	if !s.repo.Exists(userName) {
 		return nil, errors.New("user_not_found")
 	}
 
-	game, err := repo.GetGame(gameName)
+	game, err := s.repo.GetGame(gameName)
 	if err != nil {
 		return nil, err
 	}
@@ -155,40 +152,39 @@ func (*service) Click(gameName string, userName string, click *domain.ClickData)
 		}
 	}
 
-	game.TimeSpent = time.Now().Sub(game.StartedAt)
+	game.TimeSpent = time.Since(game.StartedAt)
 
 	if weHaveWinner(game) {
 		game.Status = "won"
 	}
 
-	if _, err := repo.SaveGame(game); err != nil {
+	if _, err := s.repo.SaveGame(game); err != nil {
 		return nil, err
 	}
 
 	return game, nil
 }
 
-func (*service) Board(gameName string, userName string) ([]uint8, error) {
-	if !repo.Exists(gameName) {
+func (s *service) Board(gameName string, userName string) ([]uint8, error) {
+	if !s.repo.Exists(gameName) {
 		return nil, errors.New("game_not_found")
 	}
-	if !repo.Exists(userName) {
+	if !s.repo.Exists(userName) {
 		return nil, errors.New("user_not_found")
 	}
 
-	game, err := repo.GetGame(gameName)
+	game, err := s.repo.GetGame(gameName)
 	if err != nil {
 		return nil, err
 	}
 
 	if game.Board == nil {
-		return nil, errors.New("This game has no board")
+		return nil, errors.New("this game has no board")
 	}
 
-	var boardToJSON func(data [][]byte) ([]uint8, error)
-	boardToJSON = func(data [][]byte) ([]uint8, error) {
+	boardToJSON := func(data [][]byte) ([]uint8, error) {
 		tmp := make([][]string, len(data), len(data[0]))
-		for i, _ := range data {
+		for i := range data {
 			row := data[i][:]
 			var fRow []string
 			for _, v := range row {
@@ -198,7 +194,7 @@ func (*service) Board(gameName string, userName string) ([]uint8, error) {
 		}
 		tmpJSON, err := json.Marshal(tmp)
 		if err != nil {
-			return nil, errors.New("Cannot encode to JSON")
+			return nil, errors.New("cannot encode to json")
 		}
 		return tmpJSON, nil
 	}
