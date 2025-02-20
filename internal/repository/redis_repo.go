@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/arllanos/minesweeper-API/internal/domain"
+	"github.com/arllanos/minesweeper-API/internal/services"
 	"github.com/gomodule/redigo/redis"
 )
 
@@ -25,7 +26,7 @@ type redisRepo struct {
 	pool *redis.Pool
 }
 
-func NewRedisRepository() GameRepository {
+func NewRedisRepository() services.GameRepository {
 	return &redisRepo{
 		pool: newRedisPool(),
 	}
