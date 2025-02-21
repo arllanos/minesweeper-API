@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/arllanos/minesweeper-API/internal/domain"
-	"github.com/arllanos/minesweeper-API/internal/repository"
 	"github.com/segmentio/ksuid"
 )
 
@@ -30,10 +29,10 @@ type GameService interface {
 }
 
 type service struct {
-	repo repository.GameRepository
+	repo GameRepository
 }
 
-func NewGameService(db repository.GameRepository) GameService {
+func NewGameService(db GameRepository) GameService {
 	return &service{repo: db}
 }
 
