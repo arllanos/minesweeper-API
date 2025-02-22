@@ -17,7 +17,7 @@ func main() {
 	gameRepository := repository.NewRedisRepository()
 	gameService := services.NewGameService(gameRepository)
 	gameHandler := handler.NewGameHandler(gameService)
-	httpRouter := router.NewChiRouter()
+	httpRouter := router.NewGinRouter()
 
 	// register routes
 	httpRouter.POST("/users", gameHandler.CreateUser)

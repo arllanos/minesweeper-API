@@ -151,7 +151,8 @@ Click or flag a cell in the game board. Use the `kind` field to indicate either 
 ```
 **Example Request**
 ```bash
-curl --location --request POST 'http://localhost:8080/games/game1/player1/click' \ --data-raw '{ "row": 1, "col": 0, "kind": "click" }'
+curl --location --request POST 'http://localhost:8080/games/game1/player1/click' \
+--data-raw '{ "row": 1, "col": 0, "kind": "click" }'
 ```
 **Example Response**
 ```json
